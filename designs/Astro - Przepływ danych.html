@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Astro · Przepływ danych Notion → Statyczna strona</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#0B0820;
+    --panel:#15102e;
+    --panel-2:#1c1640;
+    --ink:#ECE9FF;
+    --muted:#9089bf;
+    --line:rgba(140,130,220,.22);
+    --acc:#a78bfa;     /* fiolet */
+    --acc-2:#5eead4;   /* turkus */
+    --acc-3:#fbbf24;   /* bursztyn */
+    --mono:"Space Mono", ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);}
+  body{
+    font-family:"Space Grotesk", system-ui, sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:64px 28px 96px;}
+
+  /* Header */
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);margin:0 0 14px;}
+  h1{font-size:clamp(28px,5vw,44px);font-weight:700;margin:0 0 16px;letter-spacing:-.02em;line-height:1.08;}
+  .lede{font-size:clamp(16px,2.2vw,19px);color:var(--muted);max-width:62ch;margin:0;}
+
+  .rule{height:1px;background:var(--line);margin:48px 0;border:0;}
+
+  h2{font-size:13px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 28px;}
+
+  /* Flow */
+  .flow{display:flex;flex-direction:column;gap:0;}
+  .stage{
+    display:grid;
+    grid-template-columns:140px 1fr;
+    gap:22px;
+    align-items:stretch;
+  }
+  .rail{
+    display:flex;flex-direction:column;align-items:center;
+  }
+  .dot{
+    width:44px;height:44px;border-radius:50%;
+    display:grid;place-items:center;
+    font-family:var(--mono);font-weight:700;font-size:15px;
+    background:var(--panel-2);border:1px solid var(--line);
+    color:var(--acc);flex:0 0 auto;
+  }
+  .connector{width:2px;flex:1;background:linear-gradient(var(--line),var(--line));min-height:28px;}
+  .stage:last-child .connector{display:none;}
+  .when{
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+    margin-top:10px;text-align:center;line-height:1.4;letter-spacing:.04em;
+  }
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:22px 24px;margin-bottom:24px;
+  }
+  .card h3{margin:0 0 6px;font-size:19px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .tag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:6px;font-weight:700;}
+  .tag.build{background:rgba(167,139,250,.14);color:var(--acc);}
+  .tag.user{background:rgba(94,234,212,.13);color:var(--acc-2);}
+  .tag.secret{background:rgba(251,191,36,.14);color:var(--acc-3);}
+  .card p{margin:8px 0 0;color:var(--muted);font-size:15px;}
+  .card code{font-family:var(--mono);font-size:12.5px;background:rgba(255,255,255,.05);padding:2px 6px;border-radius:5px;color:var(--ink);}
+  .codeblock{
+    font-family:var(--mono);font-size:12.5px;line-height:1.7;
+    background:#0a0718;border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;margin-top:14px;color:#c9c2f5;overflow-x:auto;white-space:pre;
+  }
+  .codeblock .c{color:#6b6496;}
+  .codeblock .k{color:var(--acc);}
+  .codeblock .s{color:var(--acc-2);}
+
+  /* Two-line summary at bottom */
+  .pillrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+  .pill{
+    font-size:13px;color:var(--ink);background:var(--panel-2);
+    border:1px solid var(--line);border-radius:999px;padding:7px 14px;
+  }
+  .pill b{color:var(--acc-2);font-weight:600;}
+
+  .note{
+    display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;
+    background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--acc-3);
+    border-radius:12px;padding:18px 20px;margin-top:10px;
+  }
+  .note .ic{font-family:var(--mono);font-weight:700;color:var(--acc-3);font-size:18px;line-height:1;}
+  .note p{margin:0;color:var(--muted);font-size:14.5px;}
+  .note b{color:var(--ink);font-weight:600;}
+
+  @media(max-width:640px){
+    .stage{grid-template-columns:54px 1fr;gap:14px;}
+    .rail{width:54px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Radek Reads · Architektura</p>
+  <h1>Notion → Astro → Statyczna strona</h1>
+  <p class="lede">Cała integracja z Notion dzieje się <b style="color:var(--ink)">raz, podczas budowania</b>. Użytkownik nigdy nie rozmawia z Notion — dostaje gotowy, lekki HTML. Token zostaje bezpieczny, a strona ładuje się błyskawicznie na mobile.</p>
+
+  <hr class="rule"/>
+
+  <h2>Przepływ danych — krok po kroku</h2>
+
+  <div class="flow">
+
+    <!-- 1 -->
+    <div class="stage">
+      <div class="rail">
+        <div class="dot">1</div>
+        <div class="connector"></div>
+        <div class="when">w Notion<br/>(kiedy chcesz)</div>
+      </div>
+      <div class="card">
+        <h3>Baza w Notion <span class="tag secret">źródło · token sekretny</span></h3>
+        <p>Każda książka to wiersz w bazie Notion: tytuł, autor, okładka, ocena, treść recenzji. Edytujesz to wygodnie jak dokument — to Twój CMS. Dostęp chroni <b>integration token</b>, który NIGDY nie trafia do przeglądarki.</p>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="stage">
+      <div class="rail">
+        <div class="dot">2</div>
+        <div class="connector"></div>
+        <div class="when">build<br/>(na serwerze)</div>
+      </div>
+      <div class="card">
+        <h3>Astro pobiera dane <span class="tag build">build-time</span></h3>
+        <p>Podczas <code>astro build</code> kod na serwerze odpytuje Notion API jednym <code>fetch</code>-em. Token czytany jest z <code>.env</code> — pozostaje na serwerze buildu, nie w wynikowym kodzie.</p>
+        <div class="codeblock"><span class="c">// src/lib/notion.js — wykonuje się TYLKO przy buildzie</span>
+<span class="k">const</span> res = <span class="k">await</span> fetch(<span class="s">'https://api.notion.com/v1/databases/.../query'</span>, {
+  headers: { Authorization: <span class="s">`Bearer ${process.env.NOTION_TOKEN}`</span> }
+});
+<span class="k">export const</span> books = mapNotion(<span class="k">await</span> res.json());</div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="stage">
+      <div class="rail">
+        <div class="dot">3</div>
+        <div class="connector"></div>
+        <div class="when">build<br/>(renderowanie)</div>
+      </div>
+      <div class="card">
+        <h3>Generowanie stron <span class="tag build">build-time</span></h3>
+        <p>Astro renderuje komponenty <code>.astro</code> z tymi danymi do czystego HTML-a. Dla każdej książki powstaje osobny plik — np. <code>/recenzje/acotar/index.html</code> — przez routing <code>getStaticPaths()</code>. Okładki możesz przy okazji zoptymalizować (WebP/AVIF).</p>
+        <div class="codeblock"><span class="c">// src/pages/recenzje/[slug].astro</span>
+<span class="k">export async function</span> getStaticPaths() {
+  <span class="k">return</span> books.map(b => ({ params: { slug: b.slug }, props: { b } }));
+}</div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="stage">
+      <div class="rail">
+        <div class="dot">4</div>
+        <div class="connector"></div>
+        <div class="when">deploy<br/>(CDN)</div>
+      </div>
+      <div class="card">
+        <h3>Publikacja na CDN <span class="tag build">statyk</span></h3>
+        <p>Gotowy folder <code>dist/</code> (sam HTML, CSS i obrazki) ląduje na statycznym hostingu — Netlify, Cloudflare Pages, GitHub Pages. Za darmo, globalnie, bez serwera do utrzymania.</p>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="stage">
+      <div class="rail">
+        <div class="dot" style="border-color:var(--acc-2);color:var(--acc-2);">5</div>
+      </div>
+      <div class="card" style="border-color:rgba(94,234,212,.3);">
+        <h3>Użytkownik na mobile <span class="tag user">runtime · 0 zapytań do Notion</span></h3>
+        <p>Przeglądarka pobiera gotowy HTML prosto z CDN — <b>żadnego odpytywania Notion, żadnego oczekiwania na API</b>. Interaktywność (np. filtrowanie, sortowanie) działa jako pojedyncza „wyspa", która jako jedyna ładuje trochę JS-u.</p>
+        <div class="pillrow">
+          <span class="pill"><b>~0 KB</b> JS domyślnie</span>
+          <span class="pill"><b>0</b> zapytań do API w runtime</span>
+          <span class="pill"><b>HTML</b> serwowany z CDN</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="rule"/>
+
+  <h2>Jak aktualizować treść?</h2>
+  <div class="note">
+    <div class="ic">↻</div>
+    <p>Bo dane „zamrażają się" przy buildzie: po edycji książki w Notion trzeba <b>przebudować stronę</b>. Przy projekcie hobby wystarczy ręczny redeploy jednym kliknięciem. Można też ustawić <b>webhook z Notion → automatyczny rebuild</b> albo prosty cron (np. raz dziennie). Treść zmienia się rzadko, więc to nie boli — a w zamian masz najszybszą możliwą stronę.</p>
+  </div>
+
+</div>
+</body>
+</html>
