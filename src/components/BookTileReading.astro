@@ -1,0 +1,146 @@
+---
+// CTile z designs/variants/variant-c.jsx — kafelek "teraz czytam" z paskiem postępu.
+import BookCover from './BookCover.astro';
+import GenreTag from './GenreTag.astro';
+import FormatIcon from './FormatIcon.astro';
+import LangFlag from './LangFlag.astro';
+import T from './T.astro';
+import { genreInfo } from '../data/genres';
+import type { Book } from '../lib/types';
+
+interface Props {
+  book: Book;
+  size?: 'md' | 'lg';
+  vertical?: boolean;
+}
+const { book, size = 'md', vertical = false } = Astro.props;
+const isHero = size === 'lg';
+const coverW = isHero ? 150 : vertical ? 104 : 96;
+const coverH = isHero ? 218 : vertical ? 150 : 140;
+const hue = genreInfo(book.genre).hue;
+const slug = `/recenzje/${book.id}`;
+---
+
+<a href={slug} class="rr-tile" data-vertical={vertical ? '1' : '0'} style={`--hue:${hue}; padding:${isHero ? 18 : 14}px; gap:${isHero ? 16 : 10}px`}>
+  <span class="rr-tile-glow"></span>
+  <span class="rr-tile-top" style={`flex-direction:${vertical ? 'column' : 'row'}; align-items:${vertical ? 'center' : 'flex-start'}; gap:${isHero ? 18 : 12}px`}>
+    <BookCover title={book.title} author={book.author} genre={book.genre} cover={book.cover} w={coverW} h={coverH} radius={8} />
+    <span class="rr-tile-meta" style={`align-items:${vertical ? 'center' : 'flex-start'}; text-align:${vertical ? 'center' : 'left'}; width:${vertical ? '100%' : 'auto'}`}>
+      <GenreTag genre={book.genre} />
+      <span class="rr-tile-title" style={`font-size:${isHero ? 22 : 15}px`}>{book.title}</span>
+      <span class="rr-tile-author" style={`font-size:${isHero ? 13 : 11.5}px; white-space:${vertical ? 'normal' : 'nowrap'}`}>{book.author}</span>
+      <span class="rr-tile-format">
+        <FormatIcon format={book.format} size={11} />
+        <span data-i18n="pl">{book.format === 'audiobook' ? 'AUDIO' : book.format === 'ebook' ? 'EBOOK' : 'PAPIER'}</span>
+        <span data-i18n="en">{book.format === 'audiobook' ? 'AUDIO' : book.format === 'ebook' ? 'EBOOK' : 'PAPER'}</span>
+        <span style="opacity:.5">·</span>
+        <LangFlag lang={book.lang} size={9} />
+        {book.lang === 'pl' ? 'PL' : 'EN'}
+      </span>
+    </span>
+  </span>
+
+  {typeof book.progress === 'number' && (
+    <span class="rr-tile-progress">
+      <span class="rr-tile-progress-row">
+        <T k="progress" />
+        <span class="rr-tile-progress-pct">{book.progress}%</span>
+      </span>
+      <span class="rr-tile-progress-track" style={`height:${isHero ? 6 : 4}px`}>
+        <span class="rr-tile-progress-fill" style={`width:${book.progress}%`}></span>
+      </span>
+    </span>
+  )}
+</a>
+
+<style>
+  .rr-tile {
+    background: linear-gradient(155deg, oklch(0.42 0.18 var(--hue) / 0.3) 0%, var(--rr-bg-2) 60%);
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--rr-line);
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+  }
+  .rr-tile-glow {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, oklch(0.42 0.18 var(--hue) / 0.45), transparent 70%);
+    filter: blur(10px);
+  }
+  .rr-tile-top {
+    display: flex;
+    position: relative;
+  }
+  .rr-tile-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .rr-tile-title {
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--rr-ink);
+    letter-spacing: -0.02em;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .rr-tile-author {
+    font-family: var(--rr-sans);
+    color: var(--rr-muted);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rr-tile-format {
+    margin-top: 2px;
+    font-family: var(--rr-mono);
+    font-size: 10px;
+    color: var(--rr-muted);
+    letter-spacing: 0.08em;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .rr-tile-progress {
+    position: relative;
+  }
+  .rr-tile-progress-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--rr-mono);
+    font-size: 10px;
+    color: var(--rr-muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 5px;
+  }
+  .rr-tile-progress-pct {
+    color: oklch(0.82 0.16 var(--hue));
+    font-weight: 700;
+  }
+  .rr-tile-progress-track {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .rr-tile-progress-fill {
+    display: block;
+    height: 100%;
+    background: oklch(0.82 0.16 var(--hue));
+    border-radius: 99px;
+  }
+</style>

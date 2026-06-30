@@ -1,0 +1,333 @@
+---
+// Design 1 "Dossier": sticky teczka po lewej + recenzja po prawej (desktop),
+// stack na mobile. 4 stany danych: review / rated (bez recenzji) / reading / queued.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LangSwitcher from '../../components/LangSwitcher.astro';
+import BookCover from '../../components/BookCover.astro';
+import GenreTag from '../../components/GenreTag.astro';
+import StarRow from '../../components/StarRow.astro';
+import FormatIcon from '../../components/FormatIcon.astro';
+import LangFlag from '../../components/LangFlag.astro';
+import BuyLinks from '../../components/BuyLinks.astro';
+import ReviewBody from '../../components/ReviewBody.astro';
+import T from '../../components/T.astro';
+import { getBooks } from '../../lib/notion';
+import { genreInfo } from '../../data/genres';
+
+export async function getStaticPaths() {
+  const books = await getBooks();
+  return books.map((book) => ({ params: { slug: book.id }, props: { book } }));
+}
+
+const { book } = Astro.props;
+const hue = genreInfo(book.genre).hue;
+
+type PageState = 'review' | 'rated' | 'reading' | 'queued';
+const state: PageState =
+  book.shelf === 'reading'
+    ? 'reading'
+    : book.shelf === 'next'
+      ? 'queued'
+      : book.review && book.review.length
+        ? 'review'
+        : 'rated';
+
+const ogImage = book.cover;
+---
+
+<BaseLayout title={`${book.title} — ${book.author} | Radek Reads`} description={book.title} ogImage={ogImage}>
+  <div class="rr-page" style={`--hue:${hue}`}>
+    <div class="rr-header">
+      <div class="rr-header-left">
+        <a href="/" class="rr-logo">
+          <span class="rr-logo-badge">R</span>
+          <span class="rr-logo-name"><T k="siteName" /></span>
+        </a>
+        <span class="rr-header-sep"></span>
+        <a href="/" class="rr-back-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <T k="allBooks" />
+        </a>
+      </div>
+      <LangSwitcher />
+    </div>
+
+    <div class="rr-detail-grid">
+      <aside class="rr-rail">
+        <div class="rr-rail-cover">
+          <span class="rr-rail-cover-glow"></span>
+          <BookCover title={book.title} author={book.author} genre={book.genre} cover={book.cover} w={200} h={290} radius={10} />
+        </div>
+
+        <div class="rr-rail-meta">
+          <GenreTag genre={book.genre} />
+          <h1 class="rr-rail-title">{book.title}</h1>
+          <div class="rr-rail-author">{book.author}</div>
+          <div class="rr-rail-format">
+            <FormatIcon format={book.format} size={11} />
+            <span data-i18n="pl">{book.format === 'audiobook' ? 'AUDIO' : book.format === 'ebook' ? 'EBOOK' : 'PAPIER'}</span>
+            <span data-i18n="en">{book.format === 'audiobook' ? 'AUDIO' : book.format === 'ebook' ? 'EBOOK' : 'PAPER'}</span>
+            <span style="opacity:.5">·</span>
+            <LangFlag lang={book.lang} size={9} />
+            {book.lang === 'pl' ? 'PL' : 'EN'}
+          </div>
+
+          {state === 'reading' && typeof book.progress === 'number' && (
+            <div class="rr-rail-progress">
+              <div class="rr-rail-progress-row">
+                <T k="readingNow" />
+                <span class="rr-rail-progress-pct">{book.progress}%</span>
+              </div>
+              <div class="rr-rail-progress-track">
+                <span class="rr-rail-progress-fill" style={`width:${book.progress}%`}></span>
+              </div>
+            </div>
+          )}
+          {(state === 'review' || state === 'rated') && typeof book.rating === 'number' && book.rating > 0 && (
+            <div class="rr-rail-rating">
+              <StarRow value={book.rating} size={18} color={`oklch(0.82 0.16 ${hue})`} />
+              <span class="rr-rail-rating-text">
+                <T k="rated" /> {book.rating}/5
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div class="rr-rail-divider"></div>
+        <BuyLinks buyLinks={book.buyLinks} hue={hue} />
+      </aside>
+
+      <main class="rr-content">
+        {state === 'review' && book.review && <ReviewBody blocks={book.review} />}
+        {state !== 'review' && (
+          <div class="rr-state-note">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={`oklch(0.82 0.16 ${hue})`} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline>
+            </svg>
+            <span>
+              {state === 'reading' && <T k="noReviewYetReading" />}
+              {state === 'rated' && <T k="noReviewYetRated" />}
+              {state === 'queued' && (
+                <>
+                  <span data-i18n="pl">Ta książka jest w kolejce — jeszcze jej nie zacząłem.</span>
+                  <span data-i18n="en">This book is in the queue — I haven't started it yet.</span>
+                </>
+              )}
+            </span>
+          </div>
+        )}
+      </main>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .rr-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding-inline: 18px;
+    padding-top: 16px;
+    padding-bottom: 40px;
+    background-image: radial-gradient(circle at 30% 0%, oklch(0.42 0.18 var(--hue) / 0.14), transparent 45%);
+  }
+  @media (min-width: 900px) {
+    .rr-page {
+      padding-inline: 48px;
+      padding-top: 28px;
+      padding-bottom: 64px;
+    }
+  }
+
+  .rr-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 26px;
+  }
+  .rr-header-left {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+  }
+  .rr-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .rr-logo-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    padding: 2px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    background: conic-gradient(from 180deg, #a78bfa, #ec4899, #f59e0b, #10b981, #a78bfa);
+    color: var(--rr-bg);
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .rr-logo-name {
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.02em;
+  }
+  .rr-header-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--rr-line-2);
+  }
+  .rr-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rr-muted);
+  }
+
+  .rr-detail-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  @media (min-width: 900px) {
+    .rr-detail-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 56px;
+      align-items: start;
+    }
+  }
+
+  .rr-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  @media (min-width: 900px) {
+    .rr-rail {
+      position: sticky;
+      top: 28px;
+    }
+  }
+
+  .rr-rail-cover {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding-top: 8px;
+  }
+  .rr-rail-cover-glow {
+    position: absolute;
+    inset: 10% 10% -6% 10%;
+    filter: blur(34px);
+    border-radius: 50%;
+    background: radial-gradient(ellipse, oklch(0.42 0.18 var(--hue) / 0.65), transparent 70%);
+  }
+
+  .rr-rail-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .rr-rail-title {
+    margin: 0;
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: var(--rr-ink);
+  }
+  .rr-rail-author {
+    font-family: var(--rr-sans);
+    font-size: 15px;
+    color: var(--rr-muted);
+  }
+  .rr-rail-format {
+    margin-top: 2px;
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    color: var(--rr-muted);
+    letter-spacing: 0.08em;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .rr-rail-progress,
+  .rr-rail-rating {
+    margin-top: 6px;
+  }
+  .rr-rail-progress-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--rr-mono);
+    font-size: 10px;
+    color: var(--rr-muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .rr-rail-progress-pct {
+    color: oklch(0.82 0.16 var(--hue));
+    font-weight: 700;
+  }
+  .rr-rail-progress-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .rr-rail-progress-fill {
+    display: block;
+    height: 100%;
+    background: oklch(0.82 0.16 var(--hue));
+    border-radius: 99px;
+  }
+  .rr-rail-rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .rr-rail-rating-text {
+    font-family: var(--rr-mono);
+    font-size: 13px;
+    color: var(--rr-muted);
+    letter-spacing: 0.06em;
+  }
+
+  .rr-rail-divider {
+    height: 1px;
+    background: var(--rr-line);
+  }
+
+  .rr-content {
+    max-width: 680px;
+    padding-top: 8px;
+  }
+
+  .rr-state-note {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: oklch(0.42 0.16 var(--hue) / 0.1);
+    border: 1px dashed oklch(0.6 0.16 var(--hue) / 0.4);
+    font-family: var(--rr-sans);
+    font-size: 14.5px;
+    color: var(--rr-muted);
+    line-height: 1.5;
+  }
+</style>

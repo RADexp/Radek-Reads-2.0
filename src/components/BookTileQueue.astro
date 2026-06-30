@@ -1,0 +1,82 @@
+---
+// CQueueChip z designs/variants/variant-c.jsx — kafelek w poziomym scrollu "Następne".
+import BookCover from './BookCover.astro';
+import GenreTag from './GenreTag.astro';
+import { genreInfo } from '../data/genres';
+import type { Book } from '../lib/types';
+
+interface Props {
+  book: Book;
+}
+const { book } = Astro.props;
+const hue = genreInfo(book.genre).hue;
+---
+
+<a href={`/recenzje/${book.id}`} class="rr-queue-chip" style={`--hue:${hue}`}>
+  <span class="rr-queue-chip-glow"></span>
+  <span class="rr-queue-chip-cover">
+    <BookCover title={book.title} author={book.author} genre={book.genre} cover={book.cover} w={120} h={170} radius={6} />
+  </span>
+  <span class="rr-queue-chip-meta">
+    <GenreTag genre={book.genre} />
+    <span class="rr-queue-chip-title">{book.title}</span>
+    <span class="rr-queue-chip-author">{book.author}</span>
+  </span>
+</a>
+
+<style>
+  .rr-queue-chip {
+    flex: 0 0 168px;
+    background: var(--rr-bg-2);
+    border-radius: 14px;
+    padding: 12px;
+    border: 1px solid var(--rr-line);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .rr-queue-chip-glow {
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: radial-gradient(circle, oklch(0.42 0.18 var(--hue) / 0.6), transparent 70%);
+    filter: blur(8px);
+  }
+  .rr-queue-chip-cover {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding-block: 4px;
+  }
+  .rr-queue-chip-meta {
+    position: relative;
+    display: block;
+  }
+  .rr-queue-chip-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.15;
+    color: var(--rr-ink);
+    margin-top: 6px;
+    letter-spacing: -0.01em;
+  }
+  .rr-queue-chip-author {
+    display: block;
+    font-family: var(--rr-sans);
+    font-size: 11px;
+    color: var(--rr-muted);
+    margin-top: 2px;
+  }
+</style>

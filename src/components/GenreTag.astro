@@ -1,0 +1,19 @@
+---
+import { genreInfo, genreLabel } from '../data/genres';
+
+interface Props {
+  genre: string;
+  size?: number;
+}
+const { genre, size = 10 } = Astro.props;
+const { hue } = genreInfo(genre);
+const labelPl = genreLabel(genre, 'pl');
+const labelEn = genreLabel(genre, 'en');
+---
+
+<span
+  class="rr-genre-tag"
+  style={`font-family: var(--rr-mono); font-size:${size}px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; border-radius:4px; white-space:nowrap; display:inline-block; background: oklch(0.32 0.14 ${hue} / 0.55); color: oklch(0.88 0.14 ${hue}); border: 1px solid oklch(0.55 0.18 ${hue} / 0.4)`}
+>
+  <span data-i18n="pl">{labelPl}</span><span data-i18n="en">{labelEn}</span>
+</span>

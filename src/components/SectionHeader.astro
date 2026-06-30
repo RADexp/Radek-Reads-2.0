@@ -1,0 +1,22 @@
+---
+type Marker = 'now' | 'next' | 'read';
+
+interface Props {
+  titleKey: 'shelfReading' | 'shelfNext' | 'shelfFinished';
+  marker: Marker;
+  scale?: number;
+}
+import T from './T.astro';
+const { titleKey, marker, scale = 1 } = Astro.props;
+const markerVar = { now: '--rr-marker-now', next: '--rr-marker-next', read: '--rr-marker-read' }[marker];
+---
+
+<div class="rr-section-header" style={`display:flex; align-items:center; gap:${13 * scale}px; margin-bottom:${18 * scale}px`}>
+  <span
+    style={`width:${11 * scale}px; height:${11 * scale}px; border-radius:3px; background: var(${markerVar}); flex-shrink:0; box-shadow: 0 0 14px var(${markerVar}), 0 0 4px var(${markerVar})`}
+  ></span>
+  <h2 style={`margin:0; font-family: var(--rr-sans); font-weight:700; font-size:${30 * scale}px; letter-spacing:-.03em; color: var(--rr-ink); white-space:nowrap`}>
+    <T k={titleKey} />
+  </h2>
+  <span style="flex:1; height:1px; background: var(--rr-line); min-width:16px"></span>
+</div>
