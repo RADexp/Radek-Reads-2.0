@@ -1,0 +1,104 @@
+---
+import T from './T.astro';
+import FormatIcon from './FormatIcon.astro';
+import LangFlag from './LangFlag.astro';
+import type { BuyLink } from '../lib/types';
+
+interface Props {
+  buyLinks: { pl: BuyLink[]; en: BuyLink[] };
+  hue?: number;
+}
+const { buyLinks, hue = 280 } = Astro.props;
+const cols: { key: 'pl' | 'en'; items: BuyLink[] }[] = [];
+if (buyLinks.pl.length) cols.push({ key: 'pl', items: buyLinks.pl });
+if (buyLinks.en.length) cols.push({ key: 'en', items: buyLinks.en });
+---
+
+{cols.length > 0 && (
+  <div class="rr-buy-links">
+    <div class="rr-buy-links-heading">
+      <T k="whereToGet" />
+    </div>
+    <div class="rr-buy-links-cols">
+      {cols.map((col) => (
+        <div class="rr-buy-links-col">
+          <div class="rr-buy-links-col-label">
+            <LangFlag lang={col.key} size={12} />
+            <T k={col.key === 'pl' ? 'inPolish' : 'inEnglish'} />
+          </div>
+          <div class="rr-buy-links-items">
+            {col.items.map((it) => (
+              <a href={it.url} target="_blank" rel="noopener noreferrer" class="rr-retailer-btn" style={`--hue:${hue}`}>
+                <span class="rr-retailer-btn-label">
+                  {it.kind !== 'info' ? <FormatIcon format={it.kind} size={15} /> : null}
+                  {it.retailer}
+                </span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.7">
+                  <line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline>
+                </svg>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+<style>
+  .rr-buy-links-heading {
+    font-family: var(--rr-mono);
+    font-size: 10px;
+    color: var(--rr-muted);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .rr-buy-links-cols {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .rr-buy-links-col-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 9px;
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    color: var(--rr-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .rr-buy-links-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .rr-retailer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    background: oklch(0.42 0.16 var(--hue) / 0.16);
+    border: 1px solid oklch(0.6 0.16 var(--hue) / 0.4);
+    color: oklch(0.9 0.05 var(--hue));
+    font-family: var(--rr-sans);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .rr-retailer-btn:hover {
+    border-color: oklch(0.7 0.16 var(--hue) / 0.6);
+  }
+  .rr-retailer-btn-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+</style>

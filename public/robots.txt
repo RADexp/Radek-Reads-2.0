@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://radekreads.pl/sitemap-index.xml

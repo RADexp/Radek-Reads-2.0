@@ -1,0 +1,42 @@
+---
+// Mała wyspa: przełącza html[data-lang] i zapisuje wybór w localStorage.
+// Inicjalny stan ustawiany jest wcześniej, inline scriptem w <head> (BaseLayout),
+// żeby uniknąć migotania przed hydratacją.
+---
+
+<button id="rr-lang-switch" class="rr-lang-switch" type="button" aria-label="Switch language / Przełącz język">
+  <span data-i18n="pl">EN</span><span data-i18n="en">PL</span>
+</button>
+
+<script>
+  const btn = document.getElementById('rr-lang-switch');
+  btn?.addEventListener('click', () => {
+    const html = document.documentElement;
+    const next = html.dataset.lang === 'pl' ? 'en' : 'pl';
+    html.dataset.lang = next;
+    try {
+      localStorage.setItem('rr-lang', next);
+    } catch {
+      // localStorage niedostępny (np. tryb prywatny) — i tak działa w tej sesji
+    }
+  });
+</script>
+
+<style>
+  .rr-lang-switch {
+    height: 32px;
+    padding-inline: 12px;
+    border-radius: 999px;
+    border: 1px solid var(--rr-line);
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    color: var(--rr-ink);
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+  }
+  .rr-lang-switch:hover {
+    border-color: var(--rr-line-2);
+  }
+</style>

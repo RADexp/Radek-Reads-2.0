@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LangSwitcher from '../components/LangSwitcher.astro';
+import T from '../components/T.astro';
+---
+
+<BaseLayout title="O mnie | Radek Reads" description="O blogu i o mnie.">
+  <div class="rr-page">
+    <div class="rr-header">
+      <a href="/" class="rr-back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <T k="backToShelf" />
+      </a>
+      <LangSwitcher />
+    </div>
+
+    <h1 class="rr-title">
+      <span data-i18n="pl">O mnie / o blogu</span>
+      <span data-i18n="en">About me / about the blog</span>
+    </h1>
+
+    <div class="rr-todo">
+      <span data-i18n="pl">TODO: treść tej strony do uzupełnienia.</span>
+      <span data-i18n="en">TODO: this page's content is a placeholder, to be filled in.</span>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .rr-page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding-inline: 18px;
+    padding-block: 28px 60px;
+  }
+  .rr-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+  }
+  .rr-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rr-muted);
+  }
+  .rr-title {
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 36px;
+    letter-spacing: -0.03em;
+    margin: 0 0 20px;
+  }
+  .rr-todo {
+    font-family: var(--rr-mono);
+    font-size: 13px;
+    color: var(--rr-muted);
+    border: 1px dashed var(--rr-line-2);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+</style>

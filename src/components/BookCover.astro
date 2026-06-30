@@ -1,0 +1,56 @@
+---
+// Realna okładka z zewnętrznego URL. Brak `cover` lub błąd ładowania -> fallback
+// na stylizowany placeholder (kolor z hue gatunku + tytuł/autor), 1:1 ze stylem
+// RR_Cover z designs/variants/lib.jsx. Fallback przełączany inline onerror —
+// bez wyspy JS, to tylko atrybut HTML.
+import { genreInfo } from '../data/genres';
+
+interface Props {
+  title: string;
+  author: string;
+  genre: string;
+  cover?: string;
+  w?: number;
+  h?: number;
+  radius?: number;
+}
+const { title, author, genre, cover, w = 110, h = 160, radius = 6 } = Astro.props;
+const hue = genreInfo(genre).hue;
+const bg = `oklch(0.30 0.09 ${hue})`;
+const titleSize = Math.max(10, Math.round(w / 8));
+const authorSize = Math.max(8, Math.round(w / 14));
+const alt = `Okładka: ${title}, ${author}`;
+---
+
+<span class="rr-cover" style={`width:${w}px; height:${h}px; border-radius:${radius}px; position:relative; display:inline-block; flex-shrink:0; box-shadow: 0 4px 14px -4px rgba(20,10,60,.35)`}>
+  {cover && (
+    <img
+      src={cover}
+      width={w}
+      height={h}
+      loading="lazy"
+      decoding="async"
+      referrerpolicy="no-referrer"
+      alt={alt}
+      style={`width:100%; height:100%; object-fit:cover; border-radius:${radius}px; position:absolute; inset:0`}
+      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+    />
+  )}
+  <span
+    class="rr-cover-fallback"
+    style={`display:${cover ? 'none' : 'flex'}; position:absolute; inset:0; background:${bg}; color:#fff; padding:${Math.round(
+      w * 0.08,
+    )}px; box-sizing:border-box; flex-direction:column; justify-content:space-between; border-radius:${radius}px; overflow:hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06)`}
+  >
+    <span
+      style={`font-family: var(--rr-serif); font-weight:700; font-size:${titleSize}px; line-height:1.05; letter-spacing:-0.01em; text-shadow:0 1px 2px rgba(0,0,0,.25); word-break:break-word`}
+    >
+      {title}
+    </span>
+    <span
+      style={`font-size:${authorSize}px; opacity:.85; font-family: var(--rr-sans); text-transform:uppercase; letter-spacing:.06em; font-weight:600`}
+    >
+      {author}
+    </span>
+  </span>
+</span>

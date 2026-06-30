@@ -1,0 +1,459 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LangSwitcher from '../components/LangSwitcher.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import BookTileReading from '../components/BookTileReading.astro';
+import BookTileQueue from '../components/BookTileQueue.astro';
+import BookCardRead from '../components/BookCardRead.astro';
+import T from '../components/T.astro';
+import { getBooks } from '../lib/notion';
+import { genreInfo } from '../data/genres';
+import { slugify } from '../lib/slugify';
+
+const books = await getBooks();
+const reading = books.filter((b) => b.shelf === 'reading');
+const next = books.filter((b) => b.shelf === 'next');
+const finished = books.filter((b) => b.shelf === 'finished');
+
+const genresInUse = [...new Set(finished.map((b) => b.genre))];
+
+// CSS-only filtrowanie (bez JS): każdy radio dostaje regułę :has() chowającą
+// karty, których atrybut danych nie pasuje do wybranej wartości. "Wszystkie"
+// (pierwszy radio w grupie, zaznaczony domyślnie) nic nie ukrywa.
+const genreCss = genresInUse
+  .map((g) => {
+    const id = `f-genre-${slugify(g)}`;
+    return `.rr-filters:has(#${id}:checked) .rr-read-grid a:not([data-genre="${g}"]) { display: none; }`;
+  })
+  .join('\n');
+
+const facetCss = `
+.rr-filters:has(#f-lang-pl:checked) .rr-read-grid a:not([data-lang-val="pl"]) { display: none; }
+.rr-filters:has(#f-lang-en:checked) .rr-read-grid a:not([data-lang-val="en"]) { display: none; }
+.rr-filters:has(#f-format-audiobook:checked) .rr-read-grid a:not([data-format="audiobook"]) { display: none; }
+.rr-filters:has(#f-format-ebook:checked) .rr-read-grid a:not([data-format="ebook"]) { display: none; }
+.rr-filters:has(#f-format-paper:checked) .rr-read-grid a:not([data-format="paper"]) { display: none; }
+.rr-filters:has(#f-rating-4:checked) .rr-read-grid a[data-rating-4plus="0"] { display: none; }
+.rr-filters:has(#f-rating-5:checked) .rr-read-grid a[data-rating-5="0"] { display: none; }
+`;
+
+const filterCss = genreCss + facetCss;
+---
+
+<BaseLayout
+  title="Radek Reads — recenzje książek"
+  description="Osobista strona z recenzjami książek. Teraz czytam, następne w kolejce, przeczytane z oceną."
+>
+  <div class="rr-page">
+    <header class="rr-header">
+      <a href="/" class="rr-logo">
+        <span class="rr-logo-badge">R</span>
+        <span class="rr-logo-text">
+          <span class="rr-logo-name"><T k="siteName" /></span>
+        </span>
+      </a>
+      <nav class="rr-header-nav">
+        <a href="/o-mnie" class="rr-header-link"><T k="about" /></a>
+        <LangSwitcher />
+      </nav>
+    </header>
+
+    <h1 class="rr-tagline"><T k="tagline" /></h1>
+
+    {reading.length > 0 && (
+      <section class="rr-section">
+        <SectionHeader titleKey="shelfReading" marker="now" scale={0.9} />
+        <div class="rr-reading-bento">
+          {reading[0] && <BookTileReading book={reading[0]} size="lg" vertical />}
+          {reading.length > 1 && (
+            <div class="rr-reading-grid">
+              {reading.slice(1).map((b) => <BookTileReading book={b} size="md" vertical />)}
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+
+    {next.length > 0 && (
+      <section class="rr-section">
+        <SectionHeader titleKey="shelfNext" marker="next" scale={0.9} />
+        <div class="rr-queue-scroll-wrap">
+          <div class="rr-queue-scroll rr-hide-scroll">
+            {next.map((b) => <BookTileQueue book={b} />)}
+          </div>
+          <div class="rr-queue-fade" aria-hidden="true"></div>
+        </div>
+      </section>
+    )}
+
+    {finished.length > 0 ? (
+      <section class="rr-section">
+        <SectionHeader titleKey="shelfFinished" marker="read" scale={0.9} />
+
+        <form class="rr-filters">
+          <div class="rr-filter-row-label"><T k="genre" /></div>
+          <div class="rr-genre-pills rr-hide-scroll">
+            <label class="rr-pill">
+              <input type="radio" name="genre" id="f-genre-all" checked />
+              <span class="rr-pill-label"><T k="all" /></span>
+            </label>
+            {genresInUse.map((g) => {
+              const info = genreInfo(g);
+              const id = `f-genre-${slugify(g)}`;
+              return (
+                <label class="rr-pill" style={`--hue:${info.hue}`}>
+                  <input type="radio" name="genre" id={id} />
+                  <span class="rr-pill-label">
+                    <span data-i18n="pl">{info.pl}</span><span data-i18n="en">{info.en}</span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+
+          <details class="rr-refine">
+            <summary class="rr-refine-summary"><T k="filters" /></summary>
+            <div class="rr-refine-body">
+              <div class="rr-segment-group">
+                <span class="rr-segment-label"><T k="language" /></span>
+                <div class="rr-segment">
+                  <label><input type="radio" name="lang" id="f-lang-all" checked /><span class="rr-segment-opt"><T k="all" /></span></label>
+                  <label><input type="radio" name="lang" id="f-lang-pl" /><span class="rr-segment-opt">PL</span></label>
+                  <label><input type="radio" name="lang" id="f-lang-en" /><span class="rr-segment-opt">EN</span></label>
+                </div>
+              </div>
+              <div class="rr-segment-group">
+                <span class="rr-segment-label"><T k="format" /></span>
+                <div class="rr-segment">
+                  <label><input type="radio" name="format" id="f-format-all" checked /><span class="rr-segment-opt"><T k="all" /></span></label>
+                  <label><input type="radio" name="format" id="f-format-audiobook" /><span class="rr-segment-opt"><T k="audiobook" /></span></label>
+                  <label><input type="radio" name="format" id="f-format-ebook" /><span class="rr-segment-opt"><T k="ebook" /></span></label>
+                  <label><input type="radio" name="format" id="f-format-paper" /><span class="rr-segment-opt"><T k="paper" /></span></label>
+                </div>
+              </div>
+              <div class="rr-segment-group">
+                <span class="rr-segment-label"><T k="rating" /></span>
+                <div class="rr-segment">
+                  <label><input type="radio" name="rating" id="f-rating-all" checked /><span class="rr-segment-opt"><T k="all" /></span></label>
+                  <label><input type="radio" name="rating" id="f-rating-4" /><span class="rr-segment-opt">4★+</span></label>
+                  <label><input type="radio" name="rating" id="f-rating-5" /><span class="rr-segment-opt">5★</span></label>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div class="rr-read-grid">
+            {finished.map((b) => <BookCardRead book={b} />)}
+          </div>
+        </form>
+      </section>
+    ) : (
+      <p class="rr-empty"><T k="emptySection" /></p>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .rr-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-bottom: 60px;
+    background-image: radial-gradient(circle at 20% 0%, rgba(167, 139, 250, 0.1), transparent 50%),
+      radial-gradient(circle at 100% 30%, rgba(236, 72, 153, 0.06), transparent 50%);
+  }
+  @media (min-width: 900px) {
+    .rr-page {
+      padding-inline: 48px;
+    }
+  }
+
+  .rr-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-block: 18px;
+  }
+  .rr-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .rr-logo-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: conic-gradient(from 180deg, #a78bfa, #ec4899, #f59e0b, #10b981, #a78bfa);
+    display: grid;
+    place-items: center;
+    color: var(--rr-bg);
+    font-family: var(--rr-sans);
+    font-weight: 700;
+  }
+  .rr-logo-name {
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.03em;
+  }
+  .rr-header-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .rr-header-link {
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    padding-inline: 12px;
+    border-radius: 999px;
+    border: 1px solid var(--rr-line);
+    background: rgba(255, 255, 255, 0.04);
+    text-decoration: none;
+    color: var(--rr-ink);
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .rr-tagline {
+    margin: 6px 0 28px;
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: clamp(28px, 5vw, 48px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    max-width: 900px;
+  }
+
+  .rr-section {
+    margin-bottom: 40px;
+  }
+
+  .rr-reading-bento {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .rr-reading-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (min-width: 700px) {
+    .rr-reading-bento {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      gap: 14px;
+    }
+    .rr-reading-bento > :global(a:first-child) {
+      grid-row: span 2;
+    }
+    .rr-reading-grid {
+      display: contents;
+    }
+  }
+
+  .rr-queue-scroll-wrap {
+    position: relative;
+    margin-inline: -16px;
+  }
+  @media (min-width: 900px) {
+    .rr-queue-scroll-wrap {
+      margin-inline: 0;
+    }
+  }
+  .rr-queue-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-inline: 16px;
+    padding-right: 44px;
+    padding-block: 4px;
+  }
+  @media (min-width: 900px) {
+    .rr-queue-scroll {
+      padding-inline: 0;
+      padding-right: 48px;
+      gap: 14px;
+    }
+  }
+  .rr-queue-fade {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 72px;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(11, 8, 32, 0), var(--rr-bg) 80%);
+  }
+
+  .rr-filter-row-label {
+    font-family: var(--rr-mono);
+    font-size: 10px;
+    color: var(--rr-muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .rr-genre-pills {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    margin-inline: -16px;
+    padding-inline: 16px;
+    padding-block: 4px;
+  }
+  @media (min-width: 900px) {
+    .rr-genre-pills {
+      margin-inline: 0;
+      padding-inline: 0;
+      flex-wrap: wrap;
+    }
+  }
+  .rr-pill {
+    cursor: pointer;
+  }
+  .rr-pill input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rr-pill-label {
+    display: inline-block;
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 11px;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: 1px solid var(--rr-line);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--rr-ink);
+  }
+  .rr-pill input:checked + .rr-pill-label {
+    border-color: transparent;
+    background: oklch(0.5 0.18 var(--hue, 280) / 0.85);
+    color: #0b0820;
+  }
+  .rr-pill:first-child input:checked + .rr-pill-label {
+    background: var(--rr-accent);
+  }
+
+  .rr-refine {
+    margin-top: 12px;
+  }
+  .rr-refine-summary {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 8px 13px;
+    border-radius: 999px;
+    border: 1px solid var(--rr-line);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--rr-ink);
+    list-style: none;
+  }
+  .rr-refine-summary::-webkit-details-marker {
+    display: none;
+  }
+  .rr-refine-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+  }
+  @media (min-width: 900px) {
+    .rr-refine-body {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 22px;
+      align-items: center;
+    }
+  }
+  .rr-segment-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .rr-segment-label {
+    font-family: var(--rr-mono);
+    font-size: 10px;
+    color: var(--rr-muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .rr-segment {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--rr-line);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .rr-segment label {
+    cursor: pointer;
+  }
+  .rr-segment input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rr-segment-opt {
+    display: inline-block;
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    padding: 5px 12px;
+    border-radius: 999px;
+    color: var(--rr-ink);
+  }
+  .rr-segment input:checked + .rr-segment-opt {
+    background: var(--rr-accent);
+    color: #0b0820;
+  }
+
+  .rr-read-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  @media (min-width: 700px) {
+    .rr-read-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+  }
+  @media (min-width: 1100px) {
+    .rr-read-grid {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+
+  .rr-empty {
+    font-family: var(--rr-mono);
+    color: var(--rr-muted);
+    text-align: center;
+    padding: 40px 0;
+  }
+</style>
+
+<!-- CSS-only filtering: facety AND'ują się, "Wszystkie" (pierwsza opcja) nic nie ukrywa. -->
+<style set:html={filterCss}></style>

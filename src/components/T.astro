@@ -1,0 +1,14 @@
+---
+// Statyczny i18n bez JS-przeładowania: renderujemy OBA języki w HTML,
+// global.css + html[data-lang] decydują który jest widoczny.
+// LangSwitcher.astro przełącza atrybut na <html> i zapisuje wybór.
+import { dict, type DictKey } from '../i18n/dict';
+
+interface Props {
+  k: DictKey;
+}
+const { k } = Astro.props;
+const entry = dict[k];
+---
+
+<span data-i18n="pl">{entry.pl}</span><span data-i18n="en">{entry.en}</span>

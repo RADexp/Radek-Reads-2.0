@@ -1,65 +1,55 @@
-# Handoff: Radek Reads → Claude Code
+# Radek Reads v2
 
-Paczka do przekazania osobie/agentowi, który zaimplementuje **Radek Reads** w prawdziwym repo (Astro).
+Osobista strona z recenzjami książek. Astro (SSG) + dane z Notion pobierane przy buildzie + hosting na Vercel z rebuildem przez webhook.
 
-## Jak tego użyć (najkrótsza droga)
+## Stack
 
-1. Stwórz nowe, puste repo dla projektu.
-2. Wrzuć do niego ten cały folder `design_handoff_radek_reads/` (np. jako `/design`).
-3. W Claude Code jako **pierwszą wiadomość** wklej całość z `Prompt - Claude Code.md` — to jest pełna specyfikacja (stack, model danych, strony, przepływ danych, Vercel/Notion, wymagania niefunkcjonalne, tryb pracy).
-4. Dodaj jedno zdanie na końcu: *„Referencje wizualne i działające prototypy są w folderze `/design` — otwórz pliki `.html` i `.jsx`, traktuj je jako źródło prawdy dla wyglądu i zachowania UI. Screeny są w `/design/screenshots`."*
+- **Astro** (`output: 'static'`) — zero JS w runtime poza pojedynczą małą wyspą przełącznika języka.
+- **Notion** jako źródło danych (`@notionhq/client`), fetch wyłącznie przy buildzie (`src/lib/notion.ts`).
+- **Vercel** (`@astrojs/vercel` adapter) + Deploy Hook wyzwalany z Notion przy zmianie w bazie.
+- Czysty CSS (zmienne w `src/styles/global.css`), scoped `<style>` w komponentach `.astro`.
 
-Claude Code czyta źródło HTML/JSX bezpośrednio — to jest najdokładniejsza referencja. Screeny są dla szybkiego podglądu bez uruchamiania.
+## Rozwój lokalny
 
-## Co jest w środku
-
-```
-design_handoff_radek_reads/
-├─ README.md                  ← ten plik
-├─ Prompt - Claude Code.md    ← PEŁNA specyfikacja — to wklejasz do Claude Code
-├─ designs/                   ← działające prototypy (referencja wizualna)
-│  ├─ Radek Reads Redesign.html        — strona główna / półka
-│  ├─ Radek Reads - Strona recenzji.html — strona recenzji (Design 1 · Dossier + 2 alternatywy)
-│  ├─ Radek Reads - Insta.html          — ekran /insta (Stories)
-│  ├─ Astro - Przepływ danych.html      — diagram build-time data flow
-│  ├─ data/                              — przykładowe dane (books.js, review-acotar.js)
-│  └─ variants/, *.jsx                   — komponenty React prototypów
-└─ screenshots/
-   ├─ 01-home-shelf.png
-   ├─ 02-review-page.png
-   ├─ 04-insta.png
-   └─ 05-data-flow.png
+```bash
+npm install
+cp .env.example .env   # uzupełnij NOTION_TOKEN i NOTION_DATABASE_ID
+npm run dev
 ```
 
-## Ważne — czym te pliki SĄ, a czym NIE
+`npm run build` generuje statyczny `dist/`. Build wymaga dostępu do Notion (fetch w `getStaticPaths`/`getBooks()`) — błąd API przy buildzie jest traktowany jako błąd builda, nie stan runtime.
 
-Pliki w `designs/` to **referencje wizualne stworzone w HTML/React** — prototypy pokazujące docelowy wygląd i zachowanie. **To nie jest kod produkcyjny do skopiowania.** Zadaniem jest **odtworzyć te designy w docelowym stacku (Astro + czysty CSS / scoped `<style>`)** zgodnie z zasadami z `Prompt - Claude Code.md`, a nie przeklejać React/Babel.
+## Setup Notion → Vercel (rebuild po zmianie w bazie)
 
-Prototypy używają React + Babel tylko po to, żeby dało się je obejrzeć w przeglądarce — w produkcji ma być statyczny HTML z minimalnym JS (patrz wymagania w prompcie).
+1. **Integracja Notion**: wejdź na [notion.so/my-integrations](https://www.notion.so/my-integrations), utwórz nową integrację typu „Internal", skopiuj **Internal Integration Token** (zaczyna się od `ntn_` lub `secret_`) → to jest `NOTION_TOKEN`.
+2. W bazie „Radek Czyta Książki Reads" w Notion: `•••` (menu bazy) → **Connections** → dodaj swoją integrację, żeby miała dostęp do odczytu.
+3. `NOTION_DATABASE_ID` to fragment URL-a bazy (32-znakowy hex, ewentualnie z myślnikami) — np. z linku `notion.so/workspace/<ID>?v=...`.
+4. **Vercel**: zaimportuj repo jako nowy projekt, w **Settings → Environment Variables** dodaj `NOTION_TOKEN` i `NOTION_DATABASE_ID` (Production + Preview).
+5. **Deploy Hook**: **Settings → Git → Deploy Hooks** w Vercel, utwórz hook (np. nazwa „notion-update", branch `main`), skopiuj wygenerowany URL.
+6. **Notion → Vercel webhook**: Notion nie wysyła natywnie webhooków po edycji wiersza w bazie — potrzebny pośrednik (np. **Notion Automations** z akcją „Send webhook", jeśli dostępne na Twoim planie, albo **Make**/**Zapier** z triggerem „Notion: Database item updated" → akcja „Webhook: POST” na URL Deploy Hooka).
+7. Po skonfigurowaniu: zmiana w bazie (np. dopisanie oceny po skończeniu książki) wyzwala automatycznie nowy build na Vercel.
 
-## Fidelity: **hi-fi**
+**Świadomy kompromis**: treść odświeża się dopiero po rebuildzie (SSG), nie natychmiast — cena za zero JS i maksymalną szybkość ładowania na mobile.
 
-Kolory, typografia, spacing i interakcje są dopracowane — odtwarzaj UI pixel-perfect (na bazie HTML/CSS z prototypów), tłumacząc tylko technologię na Astro + scoped CSS.
-
-## Strony / widoki (mapa na prompt)
-
-- **Półka / strona główna** → `designs/Radek Reads Redesign.html` · screen `01`. Sekcje: Teraz czytam (pasek postępu) / Następne / Przeczytane (gwiazdki), karty książek, chipy gatunków, filtry.
-- **Strona recenzji** → `designs/Radek Reads - Strona recenzji.html` · screen `02`. Kierunek **Design 1 · Dossier**: sticky „teczka" po lewej + długa recenzja po prawej; mobile składa do jednej kolumny. Plik zawiera 3 warianty na płótnie — docelowy jest **Design 1**.
-- **/insta** → `designs/Radek Reads - Insta.html` · screen `04`. Pełnoekranowy 393×852, safe-area, „Teraz czytam".
-- **Przepływ danych** → `designs/Astro - Przepływ danych.html` · screen `05`. Diagram build-time fetch z Notion → statyczny HTML na Vercel.
-
-## Otwieranie prototypów lokalnie
-
-Pliki `.html` ładują React/Babel z CDN i komponenty `.jsx` przez `fetch`, więc **uruchom je przez lokalny serwer**, nie `file://`:
+## Struktura
 
 ```
-cd design_handoff_radek_reads/designs
-python3 -m http.server 8000
-# → http://localhost:8000/
+src/
+  lib/        — notion.ts (getBooks), slugify, sanitize-url, notion-blocks (render review), youtube, types
+  data/       — genres.ts (mapowanie gatunek -> hue)
+  i18n/       — dict.ts (słownik PL/EN), T.astro (statyczny i18n bez przeładowania)
+  components/ — Cover, GenreTag, StarRow, FormatIcon, LangFlag, kafelki książek, BuyLinks, LangSwitcher
+  layouts/    — BaseLayout.astro
+  pages/      — index (półka), recenzje/[slug], o-mnie, insta, rss.xml
+  styles/     — global.css (zmienne CSS)
 ```
 
-(Otwarcie podwójnym klikiem może nie zadziałać przez CORS na `file://` — wtedy wystarczą screeny.)
+## `/designs` — referencje wizualne (nie kod produkcyjny)
 
-## Estetyka (skrót — szczegóły w prompcie)
+Folder `designs/` zawiera oryginalne prototypy React/Babel użyte jako hi-fi referencja wyglądu przy budowie (Wariant C dla półki, Design 1 „Dossier" dla recenzji, insta-d1 dla `/insta`). Zostały odtworzone 1:1 w Astro + czystym CSS — `designs/` można bezpiecznie usunąć z repo produkcyjnego, zostawiono je na razie dla łatwego porównania.
 
-Ciemne tło (granat ~`#0B0820` / `#0f0c20`), fiolet jako akcent, nagłówki „Space Grotesk", mono „Space Mono" do meta/etykiet, oceny gwiazdkami, chipy gatunków z kolorowym odcieniem. Literacko, elegancko, bez AI-slopu.
+## Znane uproszczenia / TODO
+
+- `series`, `tldr` — celowo poza zakresem v1 (patrz `Prompt - Claude Code.md`, TODO v1.1).
+- Newsletter — tylko miejsce na formularz, bez backendu maili.
+- `/insta` nie obsługuje dynamicznej liczby książek przez query param (statyczny SSG) — domyślnie pokazuje do 3 pozycji z „Teraz czytam".
