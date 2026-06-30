@@ -49,7 +49,10 @@ html {
 body {
   font-family: var(--rr-sans);
   color: var(--rr-ink);
-  background: var(--rr-bg);
+  background-color: var(--rr-bg);
+  background-image: radial-gradient(circle at 20% 0%, rgba(167, 139, 250, 0.1), transparent 50%),
+    radial-gradient(circle at 100% 30%, rgba(236, 72, 153, 0.06), transparent 50%);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }

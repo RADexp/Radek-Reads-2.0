@@ -23,8 +23,7 @@ const accentColor = `oklch(0.82 0.16 ${hue})`;
   data-genre={book.genre}
   data-lang-val={book.lang}
   data-format={book.format}
-  data-rating-4plus={(book.rating ?? 0) >= 4 ? '1' : '0'}
-  data-rating-5={(book.rating ?? 0) >= 5 ? '1' : '0'}
+  data-rating-exact={Math.floor(book.rating ?? 0)}
 >
   <span class="rr-read-card-stripe"></span>
   <span class="rr-read-card-body">

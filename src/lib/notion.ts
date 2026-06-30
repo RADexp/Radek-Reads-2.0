@@ -84,7 +84,10 @@ export async function getBooks(): Promise<Book[]> {
   }
 
   const client = new Client({ auth: token });
-  const pages = await fetchAllPages(client, databaseId);
+  // Notion zwraca wiersze w kolejności odwrotnej do tej, którą Radek ustawia
+  // przeciąganiem w tabeli — przesunięcie wiersza "wyżej" w Notion ma
+  // oznaczać "świeższą" pozycję na stronie, więc odwracamy kolejność.
+  const pages = (await fetchAllPages(client, databaseId)).reverse();
 
   const seenSlugs = new Map<string, number>();
   const books: Book[] = [];

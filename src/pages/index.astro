@@ -16,6 +16,9 @@ const next = books.filter((b) => b.shelf === 'next');
 const finished = books.filter((b) => b.shelf === 'finished');
 
 const genresInUse = [...new Set(finished.map((b) => b.genre))];
+const ratingsInUse = [...new Set(finished.map((b) => Math.floor(b.rating ?? 0)))]
+  .filter((r) => r >= 1 && r <= 5)
+  .sort((a, b) => a - b);
 
 // CSS-only filtrowanie (bez JS): każdy radio dostaje regułę :has() chowającą
 // karty, których atrybut danych nie pasuje do wybranej wartości. "Wszystkie"
@@ -33,11 +36,13 @@ const facetCss = `
 .rr-filters:has(#f-format-audiobook:checked) .rr-read-grid a:not([data-format="audiobook"]) { display: none; }
 .rr-filters:has(#f-format-ebook:checked) .rr-read-grid a:not([data-format="ebook"]) { display: none; }
 .rr-filters:has(#f-format-paper:checked) .rr-read-grid a:not([data-format="paper"]) { display: none; }
-.rr-filters:has(#f-rating-4:checked) .rr-read-grid a[data-rating-4plus="0"] { display: none; }
-.rr-filters:has(#f-rating-5:checked) .rr-read-grid a[data-rating-5="0"] { display: none; }
 `;
 
-const filterCss = genreCss + facetCss;
+const ratingCss = ratingsInUse
+  .map((r) => `.rr-filters:has(#f-rating-${r}:checked) .rr-read-grid a:not([data-rating-exact="${r}"]) { display: none; }`)
+  .join('\n');
+
+const filterCss = genreCss + facetCss + ratingCss;
 ---
 
 <BaseLayout
@@ -135,8 +140,9 @@ const filterCss = genreCss + facetCss;
                 <span class="rr-segment-label"><T k="rating" /></span>
                 <div class="rr-segment">
                   <label><input type="radio" name="rating" id="f-rating-all" checked /><span class="rr-segment-opt"><T k="all" /></span></label>
-                  <label><input type="radio" name="rating" id="f-rating-4" /><span class="rr-segment-opt">4★+</span></label>
-                  <label><input type="radio" name="rating" id="f-rating-5" /><span class="rr-segment-opt">5★</span></label>
+                  {ratingsInUse.map((r) => (
+                    <label><input type="radio" name="rating" id={`f-rating-${r}`} /><span class="rr-segment-opt">{r}★</span></label>
+                  ))}
                 </div>
               </div>
             </div>
@@ -159,8 +165,6 @@ const filterCss = genreCss + facetCss;
     margin: 0 auto;
     padding-inline: 16px;
     padding-bottom: 60px;
-    background-image: radial-gradient(circle at 20% 0%, rgba(167, 139, 250, 0.1), transparent 50%),
-      radial-gradient(circle at 100% 30%, rgba(236, 72, 153, 0.06), transparent 50%);
   }
   @media (min-width: 900px) {
     .rr-page {
@@ -249,6 +253,7 @@ const filterCss = genreCss + facetCss;
     .rr-reading-bento {
       display: grid;
       grid-template-columns: 1.5fr 1fr 1fr;
+      align-items: start;
       gap: 14px;
     }
     .rr-reading-bento > :global(a:first-child) {

@@ -1,7 +1,7 @@
 ---
 // Ekran "na telefon" do Instagram Stories. Pełnoekranowy, edge-to-edge,
 // dostrojony pod iPhone (393x852, 19.5:9), safe-area dla Dynamic Island /
-// home indicator. Pokazuje do 3 pozycji "Teraz czytam" (statycznie, bez query
+// home indicator. Pokazuje do 4 pozycji "Teraz czytam" (statycznie, bez query
 // param interaktywności — strona jest w pełni statyczna SSG).
 import BookCover from '../components/BookCover.astro';
 import FormatIcon from '../components/FormatIcon.astro';
@@ -10,9 +10,9 @@ import { genreInfo } from '../data/genres';
 import { getBooks } from '../lib/notion';
 
 const books = await getBooks();
-const reading = books.filter((b) => b.shelf === 'reading').slice(0, 3);
+const reading = books.filter((b) => b.shelf === 'reading').slice(0, 4);
 const n = reading.length;
-const coverH = { 1: 300, 2: 184, 3: 170 }[n] ?? 170;
+const coverH = { 1: 300, 2: 184, 3: 170, 4: 170 }[n] ?? 170;
 const cols = n >= 3 ? 2 : 1;
 ---
 

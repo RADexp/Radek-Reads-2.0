@@ -59,6 +59,9 @@ const slug = `/recenzje/${book.id}`;
     border-radius: 18px;
     position: relative;
     overflow: hidden;
+    /* Safari (iOS) nie przycina poprawnie elementów z filter: blur() przy
+       overflow:hidden + border-radius — wymusza to maska. */
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
     border: 1px solid var(--rr-line);
     display: flex;
     flex-direction: column;
@@ -133,6 +136,8 @@ const slug = `/recenzje/${book.id}`;
     font-weight: 700;
   }
   .rr-tile-progress-track {
+    display: block;
+    width: 100%;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 99px;
     overflow: hidden;
