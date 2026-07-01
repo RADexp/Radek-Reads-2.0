@@ -51,7 +51,7 @@ const ogImage = book.cover;
           <T k="allBooks" />
         </a>
       </div>
-      <LangSwitcher />
+      <div class="rr-lang-slot"><LangSwitcher /></div>
     </div>
 
     <div class="rr-detail-grid">
@@ -125,11 +125,19 @@ const ogImage = book.cover;
 
 <style>
   .rr-page {
+    position: relative;
     max-width: 1280px;
     margin: 0 auto;
     padding-inline: 18px;
     padding-top: 16px;
     padding-bottom: 40px;
+  }
+  .rr-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image: radial-gradient(circle at 30% 0%, oklch(0.42 0.18 var(--hue) / 0.14), transparent 45%);
   }
   @media (min-width: 900px) {
@@ -145,13 +153,17 @@ const ogImage = book.cover;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     margin-bottom: 26px;
   }
   .rr-header-left {
     display: flex;
     align-items: center;
     gap: 13px;
+    min-width: 0;
+  }
+  .rr-lang-slot {
+    flex-shrink: 0;
   }
   .rr-logo {
     display: inline-flex;
@@ -159,6 +171,7 @@ const ogImage = book.cover;
     gap: 10px;
     text-decoration: none;
     color: inherit;
+    flex-shrink: 0;
   }
   .rr-logo-badge {
     width: 28px;
@@ -184,17 +197,28 @@ const ogImage = book.cover;
     width: 1px;
     height: 20px;
     background: var(--rr-line-2);
+    flex-shrink: 0;
   }
   .rr-back-link {
     display: inline-flex;
     align-items: center;
     gap: 7px;
+    min-width: 0;
     text-decoration: none;
     font-family: var(--rr-mono);
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--rr-muted);
+  }
+  .rr-back-link svg {
+    flex-shrink: 0;
+  }
+  .rr-back-link :global(span) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
 
   .rr-detail-grid {
