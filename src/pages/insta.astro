@@ -52,9 +52,8 @@ const cols = n >= 3 ? 2 : 1;
   <body>
     <div class="rr-insta">
       <div class="rr-insta-kicker">
-        <div class="rr-insta-domain">radekreads.pl</div>
+        <a href="/" class="rr-insta-domain">radekreads.pl</a>
         <h1 class="rr-insta-h1">Teraz czytam</h1>
-        <div class="rr-insta-rule"></div>
       </div>
 
       <div class="rr-insta-grid-wrap">
@@ -127,6 +126,7 @@ const cols = n >= 3 ? 2 : 1;
         letter-spacing: 0.28em;
         text-transform: uppercase;
         color: var(--rr-muted);
+        text-decoration: none;
       }
       .rr-insta-h1 {
         margin: 12px 0 0;
@@ -135,19 +135,12 @@ const cols = n >= 3 ? 2 : 1;
         font-size: 30px;
         letter-spacing: -0.03em;
       }
-      .rr-insta-rule {
-        width: 34px;
-        height: 2px;
-        background: var(--rr-line);
-        margin: 18px auto 0;
-      }
-      .rr-insta-grid-wrap {
+.rr-insta-grid-wrap {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
         min-height: 0;
-        overflow: hidden;
       }
       .rr-insta-grid {
         display: grid;
