@@ -8,7 +8,7 @@ export const GENRE_HUES: Record<string, { pl: string; en: string; hue: number }>
   'Biznesowa': { pl: 'Biznesowa', en: 'Business', hue: 30 },
   'Non-fiction': { pl: 'Non-fiction', en: 'Non-fiction', hue: 170 },
   'Popularnonaukowa': { pl: 'Popularnonaukowa', en: 'Popular science', hue: 190 },
-  'Self development': { pl: 'Self-dev', en: 'Self-dev', hue: 145 },
+  'Self development': { pl: 'Self development', en: 'Self development', hue: 145 },
   'Sportowa': { pl: 'Sportowa', en: 'Sports', hue: 95 },
   'Romantasy': { pl: 'Romantasy', en: 'Romantasy', hue: 340 },
 };
