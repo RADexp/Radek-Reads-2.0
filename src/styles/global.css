@@ -47,6 +47,12 @@ html {
   overflow-x: hidden;
 }
 
+/* iOS Safari ignoruje overflow-x:hidden na samym html przy panningu dotykiem —
+   potrzebny też na body. */
+body {
+  overflow-x: hidden;
+}
+
 body {
   font-family: var(--rr-sans);
   color: var(--rr-ink);

@@ -331,6 +331,9 @@ const filterCss = genreCss + facetCss + ratingCss;
   }
   .rr-pill {
     cursor: pointer;
+    /* Kotwica dla ukrytego inputa — bez tego absolute pozycjonuje się względem
+       strony i wystaje poza scrollowany rząd, rozpychając stronę na mobile. */
+    position: relative;
   }
   .rr-pill input {
     position: absolute;
@@ -420,6 +423,7 @@ const filterCss = genreCss + facetCss + ratingCss;
   }
   .rr-segment label {
     cursor: pointer;
+    position: relative;
   }
   .rr-segment input {
     position: absolute;
