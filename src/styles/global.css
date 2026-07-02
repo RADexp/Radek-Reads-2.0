@@ -9,7 +9,7 @@
   --rr-line: rgba(255, 255, 255, 0.08);
   --rr-line-2: rgba(255, 255, 255, 0.14);
 
-  --rr-marker-now: #a78bfa;
+  --rr-marker-now: #f43f5e;
   --rr-marker-next: #f59e0b;
   --rr-marker-read: #34d399;
 
@@ -44,6 +44,7 @@ body {
 html {
   background: var(--rr-bg);
   color-scheme: dark;
+  overflow-x: hidden;
 }
 
 body {

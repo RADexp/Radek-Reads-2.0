@@ -9,7 +9,7 @@ import T from '../components/T.astro';
     <div class="rr-header">
       <div class="rr-header-left">
         <a href="/" class="rr-logo">
-          <span class="rr-logo-badge">R</span>
+          <span class="rr-logo-badge"><span class="rr-logo-badge-inner">R</span></span>
           <span class="rr-logo-name"><T k="siteName" /></span>
         </a>
         <span class="rr-header-sep"></span>
@@ -34,6 +34,14 @@ import T from '../components/T.astro';
       <p>Od czasu do czasu sięgam również po książki o marketingu, biznesie online czy rozwoju osobistym – wybieram jednak te rzetelne, praktyczne pozycje, a nie „coacherskie" poradniki.</p>
       <p>Jak widać jestem z tych, którzy czytają po kilka książek na raz, ale zwykle jest to tylko jedna książka z danego gatunku.</p>
       <p>Dzięki za odwiedziny!</p>
+    </div>
+
+    <div class="rr-content" data-i18n="en">
+      <p>Hi, I'm Radek Grabarek and on this page I share a list of books I've recently read, am reading or plan to pick up. I love books, even if I often run out of time for them. But that's what bookworms are like, right?</p>
+      <p>To unwind I reach for science fiction—especially stories set in space. I'm fascinated by astronomy, astronautics and space engineering, so I also read popular science books on those topics. Driven by this passion I run the YouTube channel <a href="https://www.youtube.com/weneedmorespace" class="rr-link" target="_blank" rel="noopener">We Need More Space</a>, where I talk about space missions and share reviews of selected titles.</p>
+      <p>From time to time I also reach for books about marketing, online business or personal development—I go for reliable, practical titles rather than fluffy "coach" guides.</p>
+      <p>As you can see, I'm the kind of reader who juggles several books at once, though usually just one per genre.</p>
+      <p>Thanks for visiting!</p>
     </div>
   </div>
 </BaseLayout>
@@ -72,7 +80,15 @@ import T from '../components/T.astro';
     place-items: center;
     flex-shrink: 0;
     background: conic-gradient(from 180deg, #a78bfa, #ec4899, #f59e0b, #10b981, #a78bfa);
-    color: var(--rr-bg);
+  }
+  .rr-logo-badge-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    color: #16151d;
     font-family: var(--rr-sans);
     font-weight: 700;
     font-size: 14px;

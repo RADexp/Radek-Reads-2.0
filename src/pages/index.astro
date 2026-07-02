@@ -52,7 +52,7 @@ const filterCss = genreCss + facetCss + ratingCss;
   <div class="rr-page">
     <header class="rr-header">
       <a href="/" class="rr-logo">
-        <span class="rr-logo-badge">R</span>
+        <span class="rr-logo-badge"><span class="rr-logo-badge-inner">R</span></span>
         <span class="rr-logo-text">
           <span class="rr-logo-name"><T k="siteName" /></span>
         </span>
@@ -188,10 +188,20 @@ const filterCss = genreCss + facetCss + ratingCss;
     width: 36px;
     height: 36px;
     border-radius: 10px;
+    padding: 3px;
     background: conic-gradient(from 180deg, #a78bfa, #ec4899, #f59e0b, #10b981, #a78bfa);
     display: grid;
     place-items: center;
-    color: var(--rr-bg);
+    flex-shrink: 0;
+  }
+  .rr-logo-badge-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 7px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    color: #16151d;
     font-family: var(--rr-sans);
     font-weight: 700;
   }

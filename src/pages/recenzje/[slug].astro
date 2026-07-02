@@ -40,7 +40,7 @@ const ogImage = book.cover;
     <div class="rr-header">
       <div class="rr-header-left">
         <a href="/" class="rr-logo">
-          <span class="rr-logo-badge">R</span>
+          <span class="rr-logo-badge"><span class="rr-logo-badge-inner">R</span></span>
           <span class="rr-logo-name"><T k="siteName" /></span>
         </a>
         <span class="rr-header-sep"></span>
@@ -182,7 +182,15 @@ const ogImage = book.cover;
     place-items: center;
     flex-shrink: 0;
     background: conic-gradient(from 180deg, #a78bfa, #ec4899, #f59e0b, #10b981, #a78bfa);
-    color: var(--rr-bg);
+  }
+  .rr-logo-badge-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    color: #16151d;
     font-family: var(--rr-sans);
     font-weight: 700;
     font-size: 14px;
