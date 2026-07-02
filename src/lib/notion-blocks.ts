@@ -104,6 +104,19 @@ export async function getReviewBlocks(
         }
         break;
       }
+      case 'video': {
+        flushList();
+        const url = block.video.type === 'external' ? block.video.external.url : null;
+        const ytId = url ? extractYoutubeId(url) : null;
+        if (ytId) out.push({ type: 'youtube', youtubeId: ytId });
+        break;
+      }
+      case 'embed': {
+        flushList();
+        const ytId = extractYoutubeId(block.embed.url);
+        if (ytId) out.push({ type: 'youtube', youtubeId: ytId });
+        break;
+      }
       default:
         // inne typy bloków (image, quote, itd.) pomijane w v1
         flushList();
