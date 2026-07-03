@@ -7,15 +7,35 @@ interface Props {
 }
 const { value = 0, size = 12, color = 'currentColor', muted = 'rgba(255,255,255,.15)' } = Astro.props;
 const stars = [1, 2, 3, 4, 5];
+const starPath =
+  'M10 1.6l2.6 5.3 5.9.86-4.25 4.14 1 5.86L10 14.98l-5.25 2.78 1-5.86L1.5 7.76l5.9-.86z';
+// Unikalny prefiks id, aby clipPath nie kolidował między instancjami komponentu
+const uid = Math.random().toString(36).slice(2, 9);
+// Ułamek wypełnienia dla gwiazdki n, skwantyzowany co 0.25
+const fillFor = (n: number) => {
+  const raw = Math.max(0, Math.min(1, value - (n - 1)));
+  return Math.round(raw * 4) / 4;
+};
 ---
 
 <span class="rr-stars" style={`display:inline-flex; gap:1px; line-height:1; color:${color}`}>
-  {stars.map((n) => (
-    <svg width={size} height={size} viewBox="0 0 20 20" style="display:block">
-      <path
-        d="M10 1.6l2.6 5.3 5.9.86-4.25 4.14 1 5.86L10 14.98l-5.25 2.78 1-5.86L1.5 7.76l5.9-.86z"
-        fill={n <= value ? color : muted}
-      />
-    </svg>
-  ))}
+  {stars.map((n) => {
+    const fill = fillFor(n);
+    const clipId = `${uid}-${n}`;
+    return (
+      <svg width={size} height={size} viewBox="0 0 20 20" style="display:block">
+        {fill > 0 && fill < 1 && (
+          <defs>
+            <clipPath id={clipId}>
+              <rect x="0" y="0" width={20 * fill} height="20" />
+            </clipPath>
+          </defs>
+        )}
+        <path d={starPath} fill={fill >= 1 ? color : muted} />
+        {fill > 0 && fill < 1 && (
+          <path d={starPath} fill={color} clip-path={`url(#${clipId})`} />
+        )}
+      </svg>
+    );
+  })}
 </span>

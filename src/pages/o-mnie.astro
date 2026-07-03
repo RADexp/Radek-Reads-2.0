@@ -23,6 +23,7 @@ import T from '../components/T.astro';
       <LangSwitcher />
     </div>
 
+    <article class="rr-article">
     <h1 class="rr-title">
       <span data-i18n="pl">O mnie</span>
       <span data-i18n="en">About me</span>
@@ -43,15 +44,26 @@ import T from '../components/T.astro';
       <p>As you can see, I'm the kind of reader who juggles several books at once, though usually just one per genre.</p>
       <p>Thanks for visiting!</p>
     </div>
+    </article>
   </div>
 </BaseLayout>
 
 <style>
   .rr-page {
-    max-width: 680px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding-inline: 18px;
+    padding-inline: 16px;
     padding-block: 28px 60px;
+  }
+  @media (min-width: 900px) {
+    .rr-page {
+      padding-inline: 48px;
+    }
+  }
+  /* Header w pełnej szerokości strony (jak na stronie głównej),
+     a sama treść w węższej, czytelnej kolumnie wyrównanej do lewej. */
+  .rr-article {
+    max-width: 680px;
   }
   .rr-header {
     display: flex;

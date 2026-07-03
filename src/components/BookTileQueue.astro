@@ -33,6 +33,9 @@ const hue = genreInfo(book.genre).hue;
     border: 1px solid var(--rr-line);
     position: relative;
     overflow: hidden;
+    /* Safari (iOS) nie przycina poprawnie elementów z filter: blur() przy
+       overflow:hidden + border-radius — wymusza to maska. */
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
     display: flex;
     flex-direction: column;
     gap: 10px;
