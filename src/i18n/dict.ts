@@ -22,6 +22,7 @@ export const dict = {
   progress: { pl: 'Postęp', en: 'Progress' },
   readingNow: { pl: 'Teraz czytam', en: 'Reading now' },
   rated: { pl: 'ocena', en: 'rated' },
+  finishedOn: { pl: 'Przeczytane', en: 'Finished' },
   whereToGet: { pl: 'Gdzie zdobyć', en: 'Where to get it' },
   inPolish: { pl: 'Po polsku', en: 'In Polish' },
   inEnglish: { pl: 'Po angielsku', en: 'In English' },

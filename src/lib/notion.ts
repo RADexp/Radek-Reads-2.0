@@ -53,6 +53,15 @@ function getUrl(prop: any): string | null {
   return sanitizeUrl(prop?.url ?? null);
 }
 
+function getMonthYear(prop: any): string | null {
+  const raw = prop?.date?.start;
+  if (typeof raw !== 'string') return null;
+  const match = raw.match(/^(\d{4})-(\d{2})-\d{2}/);
+  if (!match) return null;
+  const [, year, month] = match;
+  return `${month}.${year}`;
+}
+
 async function fetchAllPages(client: Client, databaseId: string): Promise<PageObjectResponse[]> {
   const pages: PageObjectResponse[] = [];
   let cursor: string | undefined;
@@ -138,6 +147,8 @@ export async function getBooks(): Promise<Book[]> {
 
     const cover = getUrl(props['URL okładki']) ?? undefined;
 
+    const dateRead = getMonthYear(props['Data skończenia']) ?? undefined;
+
     const linkPl = getUrl(props['Link Polish']);
     const linkEn = getUrl(props['Link English']);
 
@@ -158,6 +169,7 @@ export async function getBooks(): Promise<Book[]> {
       cover,
       progress,
       rating,
+      dateRead,
       review,
       buyLinks: {
         pl: linkPl ? [{ retailer: 'Kup po polsku', url: linkPl, kind: format }] : [],
