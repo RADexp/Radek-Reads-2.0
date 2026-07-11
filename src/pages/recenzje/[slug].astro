@@ -74,6 +74,11 @@ const ogImage = book.cover;
             {book.lang === 'pl' ? 'PL' : 'EN'}
           </div>
 
+          {(state === 'review' || state === 'rated') && book.dateRead && (
+            <div class="rr-rail-date">
+              <T k="finishedOn" />: <span class="rr-rail-date-value">{book.dateRead}</span>
+            </div>
+          )}
           {state === 'reading' && typeof book.progress === 'number' && (
             <div class="rr-rail-progress">
               <div class="rr-rail-progress-row">
@@ -297,6 +302,22 @@ const ogImage = book.cover;
     display: inline-flex;
     align-items: center;
     gap: 7px;
+  }
+  .rr-rail-date {
+    margin-top: 2px;
+    font-family: var(--rr-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--rr-muted);
+  }
+  .rr-rail-date-value {
+    color: var(--rr-ink);
+    font-weight: 500;
+  }
+  @media (min-width: 900px) {
+    .rr-rail-date {
+      font-size: 11px;
+    }
   }
   .rr-rail-progress,
   .rr-rail-rating {
