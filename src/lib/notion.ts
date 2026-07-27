@@ -70,6 +70,7 @@ async function fetchAllPages(client: Client, databaseId: string): Promise<PageOb
       database_id: databaseId,
       start_cursor: cursor,
       page_size: 100,
+      sorts: [{ property: 'Nr', direction: 'ascending' }],
     });
     for (const page of res.results) {
       if ('properties' in page) pages.push(page as PageObjectResponse);
@@ -93,10 +94,9 @@ export async function getBooks(): Promise<Book[]> {
   }
 
   const client = new Client({ auth: token });
-  // Notion zwraca wiersze w kolejności odwrotnej do tej, którą Radek ustawia
-  // przeciąganiem w tabeli — przesunięcie wiersza "wyżej" w Notion ma
-  // oznaczać "świeższą" pozycję na stronie, więc odwracamy kolejność.
-  const pages = (await fetchAllPages(client, databaseId)).reverse();
+  // Kolejność wyświetlania jest sterowana ręcznie przez pole "Nr" w Notion
+  // (API nie ma dostępu do kolejności wierszy ustawianej przeciąganiem w widoku).
+  const pages = await fetchAllPages(client, databaseId);
 
   const seenSlugs = new Map<string, number>();
   const books: Book[] = [];
@@ -176,6 +176,15 @@ export async function getBooks(): Promise<Book[]> {
         en: linkEn ? [{ retailer: 'Buy in English', url: linkEn, kind: format }] : [],
       },
     });
+  }
+
+  // "Przeczytane" pokazujemy od najnowszej przeczytanej książki (wyższy "Nr" =
+  // przeczytana później), więc w ramach tej półki odwracamy kolejność — pozostałe
+  // półki zostają w kolejności rosnącej wg "Nr", tak jak ustawił je Radek w Notion.
+  const finishedReversed = books.filter((b) => b.shelf === 'finished').reverse();
+  let finishedIdx = 0;
+  for (let i = 0; i < books.length; i++) {
+    if (books[i].shelf === 'finished') books[i] = finishedReversed[finishedIdx++];
   }
 
   cache = books;
