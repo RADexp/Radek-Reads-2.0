@@ -149,6 +149,8 @@ export async function getBooks(): Promise<Book[]> {
 
     const dateRead = getMonthYear(props['Data skończenia']) ?? undefined;
 
+    const description = getText(props['Opis wydawnictwa']) || undefined;
+
     const linkPl = getUrl(props['Link Polish']);
     const linkEn = getUrl(props['Link English']);
 
@@ -170,6 +172,7 @@ export async function getBooks(): Promise<Book[]> {
       progress,
       rating,
       dateRead,
+      description,
       review,
       buyLinks: {
         pl: linkPl ? [{ retailer: 'Kup po polsku', url: linkPl, kind: format }] : [],
