@@ -107,21 +107,29 @@ const ogImage = book.cover;
       <main class="rr-content">
         {state === 'review' && book.review && <ReviewBody blocks={book.review} />}
         {state !== 'review' && (
-          <div class="rr-state-note">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={`oklch(0.82 0.16 ${hue})`} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline>
-            </svg>
-            <span>
-              {state === 'reading' && <T k="noReviewYetReading" />}
-              {state === 'rated' && <T k="noReviewYetRated" />}
-              {state === 'queued' && (
-                <>
-                  <span data-i18n="pl">Ta książka jest w kolejce — jeszcze jej nie zacząłem.</span>
-                  <span data-i18n="en">This book is in the queue — I haven't started it yet.</span>
-                </>
-              )}
-            </span>
-          </div>
+          <>
+            {book.description && (
+              <div class="rr-description">
+                <h2 class="rr-description-heading"><T k="about_book" /></h2>
+                <p class="rr-description-text">{book.description}</p>
+              </div>
+            )}
+            <div class="rr-state-note">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={`oklch(0.82 0.16 ${hue})`} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline>
+              </svg>
+              <span>
+                {state === 'reading' && <T k="noReviewYetReading" />}
+                {state === 'rated' && <T k="noReviewYetRated" />}
+                {state === 'queued' && (
+                  <>
+                    <span data-i18n="pl">Ta książka jest w kolejce — jeszcze jej nie zacząłem.</span>
+                    <span data-i18n="en">This book is in the queue — I haven't started it yet.</span>
+                  </>
+                )}
+              </span>
+            </div>
+          </>
         )}
       </main>
     </div>
@@ -368,6 +376,39 @@ const ogImage = book.cover;
   .rr-content {
     max-width: 680px;
     padding-top: 8px;
+  }
+
+  .rr-description {
+    margin-bottom: 22px;
+  }
+  .rr-description-heading {
+    margin: 0 0 12px;
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -0.03em;
+    color: var(--rr-ink);
+    line-height: 1.05;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .rr-description-heading::before {
+    content: '';
+    display: block;
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    background: oklch(0.82 0.16 var(--hue));
+    box-shadow: 0 0 12px oklch(0.82 0.16 var(--hue) / 0.8);
+  }
+  .rr-description-text {
+    margin: 0;
+    font-family: var(--rr-sans);
+    font-size: 16px;
+    line-height: 1.62;
+    color: #d8d3f0;
   }
 
   .rr-state-note {
