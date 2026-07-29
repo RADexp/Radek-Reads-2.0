@@ -34,7 +34,7 @@ function clampProgress(n: number): number {
   return clamp(Math.round(n), 0, 100);
 }
 
-function getText(prop: any): string {
+export function getText(prop: any): string {
   if (!prop) return '';
   if (prop.type === 'title') return prop.title.map((t: any) => t.plain_text).join('');
   if (prop.type === 'rich_text') return prop.rich_text.map((t: any) => t.plain_text).join('');
@@ -49,7 +49,7 @@ function getNumber(prop: any): number | null {
   return typeof prop?.number === 'number' ? prop.number : null;
 }
 
-function getUrl(prop: any): string | null {
+export function getUrl(prop: any): string | null {
   return sanitizeUrl(prop?.url ?? null);
 }
 
