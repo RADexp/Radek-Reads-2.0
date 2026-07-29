@@ -26,7 +26,10 @@ export const dict = {
   whereToGet: { pl: 'Gdzie zdobyć', en: 'Where to get it' },
   inPolish: { pl: 'Po polsku', en: 'In Polish' },
   inEnglish: { pl: 'Po angielsku', en: 'In English' },
-  about_book: { pl: 'O czym jest książka', en: 'What the book is about' },
+  about_book: {
+    pl: 'O czym jest ta książka? (opis wydawcy)',
+    en: 'What is this book about? (publisher’s description)',
+  },
   noReviewYetReading: {
     pl: 'Jeszcze w trakcie czytania — recenzja pojawi się po skończeniu książki.',
     en: 'Still reading — the review will appear once I finish the book.',
