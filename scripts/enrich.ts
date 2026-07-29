@@ -28,8 +28,17 @@ const DESCRIPTION_PROPERTY = 'Opis wydawnictwa';
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 const THROTTLE_MS = 1500;
-// Notion obcina pojedynczy rich_text do 2000 znaków — opisy wydawnicze mieszczą się z zapasem.
-const MAX_DESCRIPTION_LENGTH = 2000;
+// Notion obcina pojedynczy fragment rich_text do 2000 znaków, ale właściwość
+// może mieć wiele fragmentów — dłuższe opisy dzielimy, żeby nic nie ucinać.
+const NOTION_RICH_TEXT_CHUNK_LENGTH = 2000;
+
+function toRichTextChunks(text: string): { text: { content: string } }[] {
+  const chunks: { text: { content: string } }[] = [];
+  for (let i = 0; i < text.length; i += NOTION_RICH_TEXT_CHUNK_LENGTH) {
+    chunks.push({ text: { content: text.slice(i, i + NOTION_RICH_TEXT_CHUNK_LENGTH) } });
+  }
+  return chunks;
+}
 
 const dryRun = process.argv.includes('--dry-run');
 
@@ -122,7 +131,7 @@ async function main(): Promise<void> {
             page_id: page.id,
             properties: {
               [DESCRIPTION_PROPERTY]: {
-                rich_text: [{ text: { content: description.slice(0, MAX_DESCRIPTION_LENGTH) } }],
+                rich_text: toRichTextChunks(description),
               },
             },
           });
