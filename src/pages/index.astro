@@ -85,6 +85,18 @@ const filterCss = genreCss + facetCss + ratingCss;
             {next.map((b) => <BookTileQueue book={b} />)}
           </div>
           <div class="rr-queue-fade" aria-hidden="true"></div>
+          <button class="rr-queue-arrow rr-queue-arrow--prev" type="button">
+            <span class="rr-visually-hidden" data-i18n="pl">Poprzednie</span><span class="rr-visually-hidden" data-i18n="en">Previous</span>
+            <svg class="rr-queue-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+          </button>
+          <button class="rr-queue-arrow rr-queue-arrow--next" type="button">
+            <span class="rr-visually-hidden" data-i18n="pl">Następne</span><span class="rr-visually-hidden" data-i18n="en">Next</span>
+            <svg class="rr-queue-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+          </button>
         </div>
       </section>
     )}
@@ -288,6 +300,7 @@ const filterCss = genreCss + facetCss + ratingCss;
     padding-inline: 16px;
     padding-right: 44px;
     padding-block: 4px;
+    scroll-behavior: smooth;
   }
   @media (min-width: 900px) {
     .rr-queue-scroll {
@@ -303,7 +316,63 @@ const filterCss = genreCss + facetCss + ratingCss;
     bottom: 0;
     width: 72px;
     pointer-events: none;
-    background: linear-gradient(90deg, rgba(11, 8, 32, 0), var(--rr-bg) 80%);
+    background: linear-gradient(90deg, rgba(11, 8, 32, 0), var(--rr-bg) 85%);
+    transition: opacity 0.18s ease;
+  }
+  /* Gdy dojechaliśmy do końca — fade znika (nic więcej po prawej). */
+  .rr-queue-scroll-wrap.is-end .rr-queue-fade {
+    opacity: 0;
+  }
+
+  /* Strzałki nawigacyjne — okrągłe przyciski chevron na krawędziach półki.
+     Domyślnie ukryte i bezczynne; wyspa (JS) dokłada klasę .is-enhanced,
+     która włącza pojawianie na hover. Bez JS zostaje natywny scroll. */
+  .rr-queue-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(21, 16, 46, 0.82);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    color: #f4f1ff;
+    box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+  .rr-queue-arrow--prev {
+    left: 8px;
+  }
+  .rr-queue-arrow--prev .rr-queue-chevron {
+    transform: rotate(180deg);
+  }
+  .rr-queue-arrow--next {
+    right: 8px;
+  }
+  /* Pojawianie: hover na całej półce lub focus klawiaturą aktywuje aktywne strzałki. */
+  .rr-queue-scroll-wrap.is-enhanced:hover .rr-queue-arrow:not(:disabled),
+  .rr-queue-scroll-wrap.is-enhanced .rr-queue-arrow:not(:disabled):focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* Stan krańcowy: strzałka wyszarzona i nieaktywna, ale nadal widoczna przy hoverze. */
+  .rr-queue-scroll-wrap.is-enhanced:hover .rr-queue-arrow:disabled {
+    opacity: 0.35;
+  }
+  /* Bez hovera (dotyk) — użytkownik swipe'uje, strzałki zbędne. */
+  @media (hover: none) {
+    .rr-queue-arrow {
+      display: none;
+    }
   }
 
   .rr-filter-row-label {
@@ -474,3 +543,39 @@ const filterCss = genreCss + facetCss + ratingCss;
 
 <!-- CSS-only filtering: facety AND'ują się, "Wszystkie" (pierwsza opcja) nic nie ukrywa. -->
 <style set:html={filterCss}></style>
+
+<!-- Lekka wyspa: strzałki przewijania półki „Następne". Progressive enhancement —
+     bez tego skryptu półka nadal scrolluje się natywnie, tylko bez strzałek. -->
+<script>
+  const wrap = document.querySelector<HTMLElement>('.rr-queue-scroll-wrap');
+  const scroller = wrap?.querySelector<HTMLElement>('.rr-queue-scroll');
+  const prev = wrap?.querySelector<HTMLButtonElement>('.rr-queue-arrow--prev');
+  const next = wrap?.querySelector<HTMLButtonElement>('.rr-queue-arrow--next');
+
+  if (wrap && scroller && prev && next) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const measure = () => {
+      const max = scroller.scrollWidth - scroller.clientWidth;
+      const atStart = scroller.scrollLeft <= 2;
+      const atEnd = scroller.scrollLeft >= max - 2;
+      const canScroll = max > 4;
+      prev.disabled = !canScroll || atStart;
+      next.disabled = !canScroll || atEnd;
+      wrap.classList.toggle('is-end', !canScroll || atEnd);
+    };
+
+    const nudge = (dir: number) => {
+      const page = Math.max(300, scroller.clientWidth * 0.8);
+      scroller.scrollBy({ left: dir * page, behavior: reduce.matches ? 'auto' : 'smooth' });
+    };
+
+    prev.addEventListener('click', () => nudge(-1));
+    next.addEventListener('click', () => nudge(1));
+    scroller.addEventListener('scroll', measure, { passive: true });
+    new ResizeObserver(measure).observe(scroller);
+
+    wrap.classList.add('is-enhanced');
+    measure();
+  }
+</script>
