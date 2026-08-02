@@ -53,6 +53,16 @@ export function getUrl(prop: any): string | null {
   return sanitizeUrl(prop?.url ?? null);
 }
 
+// Okładka: preferuj lokalną kopię z "URL okładki w repo" (ścieżka `/covers/…`
+// serwowana z /public), a dopiero potem zewnętrzny hotlink z "URL okładki".
+// `sanitizeUrl` odrzuca ścieżki względne (brak http/https), więc lokalną
+// ścieżkę czytamy surowo — pełny URL w tej kolumnie i tak przejdzie sanityzację.
+export function getCoverSrc(repoProp: any, remoteProp: any): string | null {
+  const repo = (repoProp?.url ?? '').trim();
+  if (repo) return repo.startsWith('/') ? repo : sanitizeUrl(repo);
+  return getUrl(remoteProp);
+}
+
 function getMonthYear(prop: any): string | null {
   const raw = prop?.date?.start;
   if (typeof raw !== 'string') return null;
@@ -145,7 +155,7 @@ export async function getBooks(): Promise<Book[]> {
     const progress =
       shelf === 'reading' && progressRaw != null ? clampProgress(progressRaw) : undefined;
 
-    const cover = getUrl(props['URL okładki']) ?? undefined;
+    const cover = getCoverSrc(props['URL okładki w repo'], props['URL okładki']) ?? undefined;
 
     const dateRead = getMonthYear(props['Data skończenia']) ?? undefined;
 
