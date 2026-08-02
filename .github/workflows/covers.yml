@@ -1,0 +1,47 @@
+name: Okładki do repo
+
+# Raz w miesiącu pobiera nowe okładki (i uzupełnia opisy) z Notion do repo,
+# commituje pliki z public/covers i pushuje na main — push wyzwala redeploy
+# na Vercelu, więc okładki od razu przechodzą z hotlinka na kopię lokalną.
+# Można też odpalić ręcznie: zakładka Actions → "Okładki do repo" → Run workflow.
+on:
+  schedule:
+    # 1. dnia miesiąca o 05:12 UTC (nierówna godzina — mniejsze opóźnienia u GitHuba).
+    - cron: '12 5 1 * *'
+  workflow_dispatch: {}
+
+# Potrzebne, żeby krok commitujący mógł wypchnąć zmiany na main (GITHUB_TOKEN).
+permissions:
+  contents: write
+
+# Nie nakładaj przebiegów na siebie (np. cron + ręczne uruchomienie).
+concurrency:
+  group: covers
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Pobierz okładki i uzupełnij opisy z Notion
+        run: npm run enrich
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      - name: Commit i push nowych okładek
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -n "$(git status --porcelain public/covers)" ]; then
+            git add public/covers
+            git commit -m 'chore: automatyczny pobór okładek do repo'
+            git push
+          else
+            echo 'Brak nowych okładek — nic do commitowania.'
+          fi
