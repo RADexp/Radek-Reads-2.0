@@ -105,7 +105,13 @@ const ogImage = book.cover;
       </aside>
 
       <main class="rr-content">
-        {state === 'review' && book.review && <ReviewBody blocks={book.review} />}
+        {state === 'review' && book.review && book.reviewEn && (
+          <>
+            <div data-i18n="pl"><ReviewBody blocks={book.review} /></div>
+            <div data-i18n="en"><ReviewBody blocks={book.reviewEn} /></div>
+          </>
+        )}
+        {state === 'review' && book.review && !book.reviewEn && <ReviewBody blocks={book.review} />}
         {state !== 'review' && (
           <>
             {book.description && (

@@ -29,5 +29,6 @@ export interface Book {
   dateRead?: string;
   description?: string;
   review?: ReviewBlock[];
+  reviewEn?: ReviewBlock[];
   buyLinks: { pl: BuyLink[]; en: BuyLink[] };
 }

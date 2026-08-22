@@ -8,6 +8,15 @@ import { sanitizeUrl } from './sanitize-url';
 import { extractYoutubeId, isYoutubeOnly } from './youtube';
 import type { ReviewBlock } from './types';
 
+export interface ReviewBlocksResult {
+  pl: ReviewBlock[];
+  en: ReviewBlock[] | null;
+}
+
+// Etykieta akapitu zaraz po separatorze, który oddziela angielskie tłumaczenie
+// recenzji wklejone ręcznie na tej samej stronie Notion (patrz getReviewBlocks).
+const ENGLISH_VERSION_MARKER = /^english version$/i;
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -59,10 +68,16 @@ async function fetchAllBlocks(
 export async function getReviewBlocks(
   client: Client,
   pageId: string,
-): Promise<ReviewBlock[]> {
+): Promise<ReviewBlocksResult> {
   const blocks = await fetchAllBlocks(client, pageId);
-  const out: ReviewBlock[] = [];
+  const pl: ReviewBlock[] = [];
+  const en: ReviewBlock[] = [];
+  // Angielskie tłumaczenie recenzji (wklejane ręcznie) żyje na tej samej stronie
+  // Notion, pod separatorem (`divider`) i akapitem-etykietą "ENGLISH VERSION" —
+  // patrz [[book-review-translation]]. Pierwszy divider przełącza dalsze bloki na `en`.
+  let out = pl;
   let pendingList: string[] = [];
+  let justAfterDivider = false;
 
   const flushList = () => {
     if (pendingList.length) {
@@ -72,6 +87,18 @@ export async function getReviewBlocks(
   };
 
   for (const block of blocks) {
+    if (block.type === 'divider') {
+      flushList();
+      if (out === pl) {
+        out = en;
+        justAfterDivider = true;
+      }
+      continue;
+    }
+
+    const wasJustAfterDivider = justAfterDivider;
+    justAfterDivider = false;
+
     switch (block.type) {
       case 'heading_1': {
         flushList();
@@ -95,6 +122,7 @@ export async function getReviewBlocks(
       case 'paragraph': {
         flushList();
         const plain = richTextPlain(block.paragraph.rich_text);
+        if (wasJustAfterDivider && ENGLISH_VERSION_MARKER.test(plain.trim())) break;
         const ytId = extractYoutubeId(plain);
         if (ytId && isYoutubeOnly(plain)) {
           out.push({ type: 'youtube', youtubeId: ytId });
@@ -124,5 +152,5 @@ export async function getReviewBlocks(
     }
   }
   flushList();
-  return out;
+  return { pl, en: en.length ? en : null };
 }

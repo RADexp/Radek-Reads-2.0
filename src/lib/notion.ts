@@ -165,9 +165,11 @@ export async function getBooks(): Promise<Book[]> {
     const linkEn = getUrl(props['Link English']);
 
     let review = undefined;
+    let reviewEn = undefined;
     if (shelf === 'finished') {
       const blocks = await getReviewBlocks(client, page.id);
-      if (blocks.length) review = blocks;
+      if (blocks.pl.length) review = blocks.pl;
+      if (blocks.en?.length) reviewEn = blocks.en;
     }
 
     books.push({
@@ -184,6 +186,7 @@ export async function getBooks(): Promise<Book[]> {
       dateRead,
       description,
       review,
+      reviewEn,
       buyLinks: {
         pl: linkPl ? [{ retailer: 'Kup po polsku', url: linkPl, kind: format }] : [],
         en: linkEn ? [{ retailer: 'Buy in English', url: linkEn, kind: format }] : [],
