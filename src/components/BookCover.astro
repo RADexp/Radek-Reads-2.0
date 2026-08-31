@@ -13,16 +13,18 @@ interface Props {
   w?: number;
   h?: number;
   radius?: number;
+  fluid?: boolean;
 }
-const { title, author, genre, cover, w = 110, h = 160, radius = 6 } = Astro.props;
+const { title, author, genre, cover, w = 110, h = 160, radius = 6, fluid = false } = Astro.props;
 const hue = genreInfo(genre).hue;
 const bg = `oklch(0.30 0.09 ${hue})`;
 const titleSize = Math.max(10, Math.round(w / 8));
 const authorSize = Math.max(8, Math.round(w / 14));
 const alt = `Okładka: ${title}, ${author}`;
+const sizeStyle = fluid ? `width:100%; aspect-ratio:${w}/${h};` : `width:${w}px; height:${h}px;`;
 ---
 
-<span class="rr-cover" style={`width:${w}px; height:${h}px; border-radius:${radius}px; position:relative; display:inline-block; flex-shrink:0; box-shadow: 0 4px 14px -4px rgba(20,10,60,.35)`}>
+<span class="rr-cover" style={`${sizeStyle} border-radius:${radius}px; position:relative; display:inline-block; flex-shrink:0; box-shadow: 0 4px 14px -4px rgba(20,10,60,.35)`}>
   {cover && (
     <img
       src={cover}

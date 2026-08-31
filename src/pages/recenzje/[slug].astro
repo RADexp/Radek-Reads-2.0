@@ -58,7 +58,7 @@ const ogImage = book.cover;
       <aside class="rr-rail">
         <div class="rr-rail-cover">
           <span class="rr-rail-cover-glow"></span>
-          <BookCover title={book.title} author={book.author} genre={book.genre} cover={book.cover} w={200} h={290} radius={10} />
+          <BookCover title={book.title} author={book.author} genre={book.genre} cover={book.cover} w={200} h={290} radius={14} fluid />
         </div>
 
         <div class="rr-rail-meta">
@@ -279,6 +279,20 @@ const ogImage = book.cover;
     display: flex;
     justify-content: center;
     padding-top: 8px;
+    width: 74%;
+    max-width: 260px;
+    margin-inline: auto;
+  }
+  @media (min-width: 600px) {
+    .rr-rail-cover {
+      width: 100%;
+      max-width: 380px;
+    }
+  }
+  @media (min-width: 900px) {
+    .rr-rail-cover {
+      max-width: none;
+    }
   }
   .rr-rail-cover-glow {
     position: absolute;
