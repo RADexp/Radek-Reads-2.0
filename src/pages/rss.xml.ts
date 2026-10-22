@@ -7,7 +7,7 @@ export async function GET(context: APIContext) {
   const reviewed = books.filter((b) => b.shelf === 'finished' && b.review && b.review.length);
 
   return rss({
-    title: 'Radek Reads — recenzje książek',
+    title: 'Radek czyta książki',
     description: 'Najnowsze recenzje przeczytanych książek.',
     site: context.site!,
     items: reviewed.map((b) => {
