@@ -425,7 +425,8 @@ const filterCss = genreCss + facetCss + ratingCss;
   }
   .rr-pill input:checked + .rr-pill-label {
     border-color: transparent;
-    background: oklch(0.5 0.18 var(--hue, 280) / 0.85);
+    /* L=0.78 bez przezroczystości: ciemny tekst ma ≥4.5:1 (wcześniej 2.4–3.2:1). */
+    background: oklch(0.78 0.14 var(--hue, 280));
     color: #0b0820;
   }
   .rr-pill:first-child input:checked + .rr-pill-label {
@@ -513,6 +514,13 @@ const filterCss = genreCss + facetCss + ratingCss;
   .rr-segment input:checked + .rr-segment-opt {
     background: var(--rr-accent);
     color: #0b0820;
+  }
+
+  /* Radio są niewidoczne (opacity:0), więc fokus klawiatury pokazujemy na etykiecie. */
+  .rr-pill input:focus-visible + .rr-pill-label,
+  .rr-segment input:focus-visible + .rr-segment-opt {
+    outline: 2px solid var(--rr-accent);
+    outline-offset: 2px;
   }
 
   .rr-read-grid {

@@ -9,7 +9,9 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 ---
 
 <!doctype html>
-<html lang="pl">
+<!-- data-lang="pl" jako wartość domyślna: bez JS tekst UI i recenzje nadal są widoczne.
+     Inline script poniżej nadpisuje ją wyborem użytkownika / językiem przeglądarki. -->
+<html lang="pl" data-lang="pl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
