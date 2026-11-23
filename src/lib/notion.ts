@@ -1,9 +1,10 @@
 import { Client } from '@notionhq/client';
 import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { bookSlug } from './slugify';
+import { seriesSlug } from './series';
 import { sanitizeUrl } from './sanitize-url';
 import { getReviewBlocks } from './notion-blocks';
-import type { Book, Format, Lang, Shelf } from './types';
+import type { Book, Format, Lang, SeriesRef, Shelf } from './types';
 
 const STATUS_TO_SHELF: Record<string, Shelf> = {
   'Czytam': 'reading',
@@ -161,6 +162,13 @@ export async function getBooks(): Promise<Book[]> {
 
     const description = getText(props['Opis wydawnictwa']) || undefined;
 
+    // Cykl: Select "Cykl" + Number "Cykl NR". Sam numer bez nazwy cyklu ignorujemy.
+    const seriesName = getSelect(props['Cykl']).trim();
+    const seriesNr = getNumber(props['Cykl NR']);
+    const series: SeriesRef | undefined = seriesName
+      ? { name: seriesName, slug: seriesSlug(seriesName), nr: seriesNr ?? undefined }
+      : undefined;
+
     const linkPl = getUrl(props['Link Polish']);
     const linkEn = getUrl(props['Link English']);
 
@@ -191,6 +199,7 @@ export async function getBooks(): Promise<Book[]> {
         pl: linkPl ? [{ retailer: 'Kup po polsku', url: linkPl, kind: format }] : [],
         en: linkEn ? [{ retailer: 'Buy in English', url: linkEn, kind: format }] : [],
       },
+      series,
     });
   }
 

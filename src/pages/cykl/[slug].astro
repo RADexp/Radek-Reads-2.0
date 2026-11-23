@@ -1,0 +1,356 @@
+---
+// Podstrona cyklu — wariant B1 „Oś czytania” z designs/Radek Reads - Cykle.html:
+// nagłówek ze statystykami + pionowa lista tomów w kolejności "Cykl NR".
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import BookCover from '../../components/BookCover.astro';
+import StarRow from '../../components/StarRow.astro';
+import T from '../../components/T.astro';
+import { getBooks } from '../../lib/notion';
+import { getAllSeries, volumeLabel, type Series } from '../../lib/series';
+import { genreInfo } from '../../data/genres';
+import type { Shelf } from '../../lib/types';
+
+export async function getStaticPaths() {
+  const books = await getBooks();
+  return getAllSeries(books).map((series) => ({ params: { slug: series.slug }, props: { series } }));
+}
+
+const { series } = Astro.props as { series: Series };
+const first = series.books[0];
+const genre = first.genre;
+const hue = genreInfo(genre).hue;
+const authors = [...new Set(series.books.map((b) => b.author))].join(', ');
+
+const total = series.books.length;
+const readCount = series.books.filter((b) => b.shelf === 'finished').length;
+const rated = series.books.filter((b) => typeof b.rating === 'number' && b.rating > 0);
+const avgRating = rated.length
+  ? (rated.reduce((sum, b) => sum + (b.rating ?? 0), 0) / rated.length).toFixed(1)
+  : null;
+
+const STATUS_KEY: Record<Shelf, 'shelfFinished' | 'readingNow' | 'statusQueued'> = {
+  finished: 'shelfFinished',
+  reading: 'readingNow',
+  next: 'statusQueued',
+};
+
+const ogImage = series.books.find((b) => b.cover)?.cover;
+const description = `${series.name} — ${authors}`;
+---
+
+<BaseLayout title={`Cykl ${series.name} — ${authors} | Radek czyta`} description={description} ogImage={ogImage}>
+  <div class="rr-page" style={`--hue:${hue}`}>
+    <PageHeader />
+
+    <header class="rs-hero">
+      <div>
+        <div class="rs-eyebrow"><T k="series" /> · <span data-i18n="pl">{genreInfo(genre).pl}</span><span data-i18n="en">{genreInfo(genre).en}</span></div>
+        <h1 class="rs-title">{series.name}</h1>
+        <div class="rs-author">{authors}</div>
+        <dl class="rs-stats">
+          <div><dt><T k="seriesVolumes" /></dt><dd>{total}</dd></div>
+          <div><dt><T k="seriesRead" /></dt><dd>{readCount}</dd></div>
+          {avgRating && <div><dt><T k="seriesAvgRating" /></dt><dd>{avgRating}</dd></div>}
+        </dl>
+      </div>
+      <div class="rs-progress">
+        <div class="rs-progress-label"><T k="seriesProgress" /> · {readCount} / {total}</div>
+        <div class="rs-progress-track" aria-hidden="true">
+          {series.books.map((b) => <span class={`rs-seg is-${b.shelf}`}></span>)}
+        </div>
+      </div>
+    </header>
+
+    <ol class="rs-list">
+      {series.books.map((book, i) => (
+        <li>
+          <a href={`/recenzje/${book.id}`} class={`rs-row is-${book.shelf}`}>
+            <span class="rs-num" aria-label={`Tom ${volumeLabel(book, i)}`}>{volumeLabel(book, i)}</span>
+            <span class="rs-cover">
+              <BookCover title={book.title} author={book.author} genre={book.genre} cover={book.cover} w={110} h={165} radius={10} fluid />
+            </span>
+            <span class="rs-body">
+              <span class="rs-book-title">{book.title}</span>
+              <span class="rs-meta">
+                <span class={`rs-pill is-${book.shelf}`}><span class="rs-dot"></span><T k={STATUS_KEY[book.shelf]} /></span>
+                {book.shelf === 'finished' && typeof book.rating === 'number' && book.rating > 0 && (
+                  <StarRow value={book.rating} size={14} color={`oklch(0.82 0.16 ${hue})`} />
+                )}
+                {book.shelf === 'finished' && book.dateRead && <span class="rs-date">{book.dateRead}</span>}
+                {book.shelf === 'reading' && typeof book.progress === 'number' && (
+                  <span class="rs-reading">
+                    <span class="rs-bar"><span style={`width:${book.progress}%`}></span></span>
+                    <span class="rs-date">{book.progress}%</span>
+                  </span>
+                )}
+              </span>
+            </span>
+            <span class="rs-go">
+              {book.review?.length ? <T k="openReview" /> : <T k="openDetails" />} →
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </div>
+</BaseLayout>
+
+<style>
+  .rr-page {
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 16px 18px 40px;
+  }
+  .rr-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(circle at 30% 0%, oklch(0.42 0.18 var(--hue) / 0.14), transparent 45%);
+  }
+  @media (min-width: 900px) {
+    .rr-page {
+      padding: 28px 48px 64px;
+    }
+  }
+
+  /* ---------- nagłówek cyklu ---------- */
+  .rs-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  @media (min-width: 900px) {
+    .rs-hero {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 40px;
+      align-items: end;
+      margin-bottom: 44px;
+    }
+  }
+  .rs-eyebrow {
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: oklch(0.82 0.16 var(--hue));
+    margin-bottom: 10px;
+  }
+  .rs-title {
+    margin: 0 0 10px;
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: clamp(38px, 7vw, 56px);
+    line-height: 1;
+    letter-spacing: -0.045em;
+    color: var(--rr-ink);
+  }
+  .rs-author {
+    font-family: var(--rr-sans);
+    font-size: 17px;
+    color: var(--rr-muted);
+  }
+  .rs-stats {
+    display: flex;
+    gap: 28px;
+    margin: 22px 0 0;
+  }
+  .rs-stats div {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .rs-stats dt {
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--rr-muted);
+  }
+  .rs-stats dd {
+    margin: 0 0 2px;
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    color: var(--rr-ink);
+  }
+  .rs-progress-label {
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rr-muted);
+  }
+  .rs-progress-track {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .rs-seg {
+    flex: 1;
+    height: 8px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .rs-seg.is-finished { background: var(--rr-marker-read); }
+  .rs-seg.is-reading { background: var(--rr-marker-now); }
+  .rs-seg.is-next { background: var(--rr-marker-next); opacity: 0.55; }
+
+  /* ---------- lista tomów (oś) ---------- */
+  .rs-list {
+    --num: 44px;
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .rs-list::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--num) / 2 - 1px);
+    top: 30px;
+    bottom: 30px;
+    width: 2px;
+    background: linear-gradient(oklch(0.82 0.16 var(--hue)), transparent);
+    opacity: 0.35;
+  }
+  .rs-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--num) 84px 1fr;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 12px 12px 0;
+    border-radius: 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s;
+  }
+  .rs-row:hover,
+  .rs-row:focus-visible {
+    background: rgba(255, 255, 255, 0.035);
+  }
+  .rs-num {
+    width: var(--num);
+    height: var(--num);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    position: relative;
+    z-index: 1;
+    font-family: var(--rr-mono);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--rr-ink);
+    background: var(--rr-bg-2);
+    border: 2px solid oklch(0.6 0.16 var(--hue) / 0.5);
+  }
+  .rs-row.is-reading .rs-num {
+    border-color: var(--rr-marker-now);
+  }
+  .rs-cover {
+    display: block;
+  }
+  .rs-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+  .rs-book-title {
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--rr-ink);
+  }
+  .rs-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: center;
+  }
+  .rs-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 99px;
+    font-family: var(--rr-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .rs-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .rs-pill.is-finished { color: var(--rr-marker-read); background: rgb(52 211 153 / 0.1); }
+  .rs-pill.is-reading { color: var(--rr-marker-now); background: rgb(244 63 94 / 0.12); }
+  .rs-pill.is-next { color: var(--rr-marker-next); background: rgb(245 158 11 / 0.1); }
+  .rs-date {
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--rr-muted);
+  }
+  .rs-reading {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .rs-bar {
+    display: block;
+    width: 120px;
+    height: 5px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+  .rs-bar span {
+    display: block;
+    height: 100%;
+    background: var(--rr-marker-now);
+  }
+  .rs-go {
+    display: none;
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: oklch(0.82 0.16 var(--hue));
+    white-space: nowrap;
+  }
+
+  @media (min-width: 700px) {
+    .rs-list {
+      --num: 60px;
+      gap: 14px;
+    }
+    .rs-row {
+      grid-template-columns: var(--num) 120px 1fr auto;
+      gap: 26px;
+      padding: 14px 22px 14px 0;
+    }
+    .rs-num {
+      font-size: 18px;
+    }
+    .rs-book-title {
+      font-size: 22px;
+    }
+    .rs-go {
+      display: inline;
+    }
+  }
+</style>
