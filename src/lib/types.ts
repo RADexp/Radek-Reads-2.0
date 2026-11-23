@@ -15,6 +15,13 @@ export interface ReviewBlock {
   youtubeId?: string;
 }
 
+export interface SeriesRef {
+  name: string;
+  slug: string;
+  /** Numer tomu z kolumny "Cykl NR"; brak = nieznana pozycja (sortowana na koniec). */
+  nr?: number;
+}
+
 export interface Book {
   id: string;
   shelf: Shelf;
@@ -31,4 +38,5 @@ export interface Book {
   review?: ReviewBlock[];
   reviewEn?: ReviewBlock[];
   buyLinks: { pl: BuyLink[]; en: BuyLink[] };
+  series?: SeriesRef;
 }

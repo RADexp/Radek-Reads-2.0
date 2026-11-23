@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Radek Reads · Cykle — warianty designu</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --rr-bg: #0b0820; --rr-bg-2: #15102e; --rr-ink: #f4f1ff; --rr-muted: #9e97c8; --rr-faint: #6e68a0;
+    --rr-line: rgba(255,255,255,.08); --rr-line-2: rgba(255,255,255,.14);
+    --now: #f43f5e; --next: #f59e0b; --read: #34d399;
+    --sans: 'Space Grotesk', system-ui, sans-serif; --mono: 'JetBrains Mono', monospace; --serif: 'Newsreader', Georgia, serif;
+    --hue: 265; --acc: oklch(0.82 0.16 var(--hue));
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #06041a; color: var(--rr-ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+
+  /* ---------- kanwa z wariantami ---------- */
+  .canvas { max-width: 1320px; margin: 0 auto; padding: 40px 24px 120px; }
+  .canvas > h1 { font-size: 30px; letter-spacing: -.03em; margin: 0 0 6px; }
+  .canvas > p.lead { color: var(--rr-muted); margin: 0 0 40px; max-width: 760px; line-height: 1.55; }
+  .part { margin: 56px 0 18px; font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--acc); }
+  .variant-label { display: flex; align-items: baseline; gap: 14px; margin: 34px 0 12px; }
+  .variant-label b { font-size: 22px; letter-spacing: -.02em; }
+  .variant-label span { color: var(--rr-muted); font-size: 14px; }
+  .frame { border: 1px solid var(--rr-line-2); border-radius: 18px; overflow: hidden; background: var(--rr-bg); position: relative; }
+  .frame::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(circle at 30% 0%, oklch(0.42 0.18 var(--hue) / .16), transparent 45%); }
+  .frame-inner { position: relative; padding: 28px 48px 48px; }
+  .notes { margin: 12px 4px 0; color: var(--rr-muted); font-size: 13.5px; line-height: 1.6; }
+  .notes li { margin-bottom: 2px; }
+
+  /* ---------- wspólne elementy strony ---------- */
+  .hdr { display: flex; align-items: center; gap: 13px; margin-bottom: 26px; font-size: 14px; color: var(--rr-muted); }
+  .logo { display: inline-flex; align-items: center; gap: 10px; color: var(--rr-ink); font-weight: 700; }
+  .logo i { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-style: normal;
+    background: linear-gradient(135deg, #a78bfa, #f472b6); color: #0b0820; font-weight: 800; }
+  .sep { width: 1px; height: 18px; background: var(--rr-line-2); }
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 56px; align-items: start; }
+  .rail { display: flex; flex-direction: column; gap: 18px; }
+  .cover { display: block; width: 100%; border-radius: 14px; box-shadow: 0 30px 60px -20px oklch(0.3 0.2 var(--hue) / .8); }
+  .tag { align-self: flex-start; font-family: var(--mono); font-size: 10px; letter-spacing: .12em; padding: 5px 9px; border-radius: 99px;
+    color: var(--acc); background: oklch(0.42 0.16 var(--hue) / .18); border: 1px solid oklch(0.6 0.16 var(--hue) / .35); }
+  .title { margin: 0; font-size: 26px; line-height: 1.08; letter-spacing: -.03em; }
+  .author { color: var(--rr-muted); font-size: 15px; }
+  .mono { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--rr-muted); }
+  .stars { color: var(--acc); letter-spacing: 2px; font-size: 17px; }
+  .divider { height: 1px; background: var(--rr-line); }
+  .content { max-width: 680px; padding-top: 8px; }
+  .content h2 { font-size: 26px; letter-spacing: -.03em; margin: 0 0 14px; }
+  .content p { font-family: var(--serif); font-size: 19px; line-height: 1.6; color: #d8d3f0; margin: 0 0 16px; }
+  .ghost { color: #6e68a0; }
+  .buy { display: flex; flex-direction: column; gap: 8px; }
+  .buy div { padding: 11px 14px; border-radius: 10px; border: 1px solid var(--rr-line-2); font-size: 14px; color: var(--rr-muted); }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .dot.read { background: var(--read); } .dot.now { background: var(--now); box-shadow: 0 0 8px var(--now); } .dot.next { background: var(--next); }
+
+  /* ---------- A1: karta cyklu w lewej kolumnie ---------- */
+  .a1-card { border-radius: 14px; padding: 16px; background: oklch(0.42 0.16 var(--hue) / .1); border: 1px solid oklch(0.6 0.16 var(--hue) / .28); }
+  .a1-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .a1-name { font-size: 17px; font-weight: 700; letter-spacing: -.02em; }
+  .a1-name small { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--rr-muted); font-weight: 400; margin-bottom: 3px; }
+  .a1-pos { font-family: var(--mono); font-size: 12px; color: var(--acc); }
+  .a1-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 14px; }
+  .a1-seg span { height: 5px; border-radius: 99px; background: rgba(255,255,255,.1); }
+  .a1-seg span.read { background: var(--read); opacity: .55; } .a1-seg span.now { background: var(--now); opacity: .7; }
+  .a1-seg span.cur { background: var(--acc); opacity: 1; box-shadow: 0 0 10px var(--acc); }
+  .a1-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .a1-nav a { display: flex; align-items: center; gap: 9px; padding: 8px; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid var(--rr-line); }
+  .a1-nav a:hover { border-color: var(--acc); }
+  .a1-nav a.next { flex-direction: row-reverse; text-align: right; }
+  .a1-nav img { width: 30px; height: 44px; object-fit: cover; border-radius: 4px; }
+  .a1-nav .t { font-size: 12px; line-height: 1.2; }
+  .a1-nav .t small { display: block; font-family: var(--mono); font-size: 9.5px; color: var(--rr-muted); letter-spacing: .08em; margin-bottom: 2px; }
+  .a1-all { display: block; margin-top: 12px; text-align: center; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--acc); }
+
+  /* ---------- A2: chip pod tytułem + pasek okładek pod recenzją ---------- */
+  .chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 11px 6px 8px; border-radius: 99px;
+    background: rgba(255,255,255,.05); border: 1px solid var(--rr-line-2); font-size: 13px; }
+  .chip b { font-family: var(--mono); font-size: 10.5px; color: #0b0820; background: var(--acc); border-radius: 99px; padding: 2px 7px; }
+  .a2-strip { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--rr-line); }
+  .a2-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+  .a2-head h3 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+  .a2-head a { font-family: var(--mono); font-size: 11px; color: var(--acc); letter-spacing: .08em; }
+  .a2-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .a2-item { position: relative; display: flex; flex-direction: column; gap: 8px; opacity: .62; transition: opacity .15s; }
+  .a2-item:hover { opacity: 1; }
+  .a2-item img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 9px; }
+  .a2-item.cur { opacity: 1; }
+  .a2-item.cur img { outline: 2px solid var(--acc); outline-offset: 3px; }
+  .a2-item .n { position: absolute; top: 8px; left: 8px; font-family: var(--mono); font-size: 11px; font-weight: 700;
+    background: rgba(11,8,32,.85); padding: 3px 7px; border-radius: 6px; }
+  .a2-item .lbl { font-size: 12.5px; line-height: 1.25; display: flex; gap: 6px; align-items: flex-start; }
+  .a2-item .lbl .dot { margin-top: 4px; }
+  .a2-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 22px; }
+  .a2-nav a { padding: 16px 18px; border-radius: 12px; border: 1px solid var(--rr-line-2); background: rgba(255,255,255,.03); }
+  .a2-nav a:hover { border-color: var(--acc); }
+  .a2-nav small { display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; color: var(--rr-muted); margin-bottom: 5px; }
+  .a2-nav span { font-size: 16px; font-weight: 600; }
+  .a2-nav a.next { text-align: right; }
+
+  /* ---------- B: wspólne nagłówki podstrony cyklu ---------- */
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; color: var(--acc); margin-bottom: 10px; }
+  .s-title { font-size: 54px; letter-spacing: -.045em; line-height: 1; margin: 0 0 10px; }
+  .s-author { color: var(--rr-muted); font-size: 17px; }
+  .stats { display: flex; gap: 28px; margin-top: 22px; }
+  .stats div { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--rr-muted); }
+  .stats b { display: block; font-family: var(--sans); font-size: 26px; letter-spacing: -.02em; color: var(--rr-ink); margin-bottom: 2px; }
+  .pill { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; padding: 4px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 6px; }
+  .pill.read { color: var(--read); background: rgba(52,211,153,.1); } .pill.now { color: var(--now); background: rgba(244,63,94,.12); } .pill.next { color: var(--next); background: rgba(245,158,11,.1); }
+
+  /* ---------- B1: oś czasu / lista ---------- */
+  .b1-hero { display: grid; grid-template-columns: 1fr 360px; gap: 40px; align-items: end; margin-bottom: 40px; }
+  .b1-prog { font-family: var(--mono); font-size: 11px; color: var(--rr-muted); letter-spacing: .08em; }
+  .b1-track { display: flex; gap: 4px; margin-top: 8px; }
+  .b1-track span { flex: 1; height: 8px; border-radius: 99px; }
+  .b1-list { position: relative; display: flex; flex-direction: column; gap: 14px; }
+  .b1-list::before { content: ''; position: absolute; left: 31px; top: 20px; bottom: 20px; width: 2px; background: linear-gradient(var(--acc), transparent); opacity: .35; }
+  .b1-row { position: relative; display: grid; grid-template-columns: 64px 74px 1fr auto; gap: 22px; align-items: center;
+    padding: 14px 20px 14px 0; border-radius: 14px; }
+  .b1-row:hover { background: rgba(255,255,255,.035); }
+  .b1-num { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-size: 18px; font-weight: 700;
+    background: var(--rr-bg-2); border: 2px solid oklch(0.6 0.16 var(--hue) / .5); position: relative; z-index: 1; }
+  .b1-row img { width: 74px; height: 110px; object-fit: cover; border-radius: 8px; }
+  .b1-row h3 { margin: 0 0 4px; font-size: 21px; letter-spacing: -.02em; }
+  .b1-meta { display: flex; gap: 14px; align-items: center; margin-top: 8px; }
+  .b1-go { font-family: var(--mono); font-size: 11px; color: var(--acc); letter-spacing: .08em; }
+  .b1-progress { width: 140px; height: 5px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .b1-progress i { display: block; height: 100%; width: 38%; background: var(--now); }
+
+  /* ---------- B2: półka okładek ---------- */
+  .b2-hero { display: grid; grid-template-columns: 1fr 420px; gap: 40px; align-items: center; margin-bottom: 44px; }
+  .fan { position: relative; height: 260px; }
+  .fan img { position: absolute; top: 20px; width: 150px; border-radius: 10px; box-shadow: 0 20px 40px -10px rgba(0,0,0,.7); }
+  .b2-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; }
+  .b2-card { display: flex; flex-direction: column; gap: 12px; }
+  .b2-cov { position: relative; }
+  .b2-cov img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 12px; display: block; transition: transform .2s; }
+  .b2-card:hover .b2-cov img { transform: translateY(-4px); }
+  .b2-big { position: absolute; left: -12px; top: -18px; font-size: 64px; font-weight: 700; letter-spacing: -.06em; line-height: 1;
+    color: var(--rr-ink); -webkit-text-stroke: 0; text-shadow: 0 4px 20px rgba(0,0,0,.8); }
+  .b2-card h3 { margin: 8px 0 0; font-size: 17px; letter-spacing: -.02em; line-height: 1.2; }
+  .b2-line { display: flex; justify-content: space-between; align-items: center; }
+  .b2-cov .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; border-radius: 0 0 12px 12px; }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <h1>Cykle — warianty designu</h1>
+  <p class="lead">Dane prawdziwe z Notion (Bobiverse, tomy 1–4, okładki z <code>public/covers</code>). Strona recenzji pokazana na tomie 2, żeby były obie strzałki. Kolory statusów jak na stronie głównej: zielony = przeczytane, czerwony = czytam, pomarańczowy = w kolejce.</p>
+
+  <!-- ===================================================== A ===================================================== -->
+  <div class="part">A · STRONA RECENZJI — INFORMACJA O CYKLU</div>
+
+  <!-- A1 -->
+  <div class="variant-label"><b>A1 · Karta w teczce</b><span>wszystko w lewej kolumnie, pod oceną — zawsze widoczne (kolumna jest sticky)</span></div>
+  <div class="frame"><div class="frame-inner">
+    <div class="hdr"><span class="logo"><i>R</i>Radek czyta książki</span><span class="sep"></span>← Wszystkie książki</div>
+    <div class="grid">
+      <aside class="rail">
+        <img class="cover" src="../public/covers/for-we-are-many-bobiverse-book-2-dennis-e-taylor.jpg" alt="" />
+        <span class="tag">SCIENCE FICTION</span>
+        <h1 class="title">For We Are Many (Bobiverse Book 2)</h1>
+        <div class="author">Dennis E. Taylor</div>
+        <div class="mono">EBOOK · EN</div>
+        <div class="mono">PRZECZYTANA: <span style="color:var(--rr-ink)">05.2026</span></div>
+        <div><span class="stars">★★★★☆</span> <span class="mono">4/5</span></div>
+
+        <div class="a1-card">
+          <div class="a1-top">
+            <a href="#" class="a1-name"><small>CYKL</small>Bobiverse</a>
+            <span class="a1-pos">TOM 2 / 4</span>
+          </div>
+          <div class="a1-seg"><span class="read"></span><span class="cur"></span><span class="read"></span><span class="now"></span></div>
+          <div class="a1-nav">
+            <a href="#"><img src="../public/covers/we-are-legion-we-are-bob-dennis-e-taylor.jpg" alt="" /><span class="t"><small>← TOM 1</small>We Are Legion</span></a>
+            <a href="#" class="next"><img src="../public/covers/all-these-worlds-dennis-e-taylor.jpg" alt="" /><span class="t"><small>TOM 3 →</small>All These Worlds</span></a>
+          </div>
+          <a href="#" class="a1-all">CAŁY CYKL →</a>
+        </div>
+
+        <div class="divider"></div>
+        <div class="buy"><div>Buy in English ↗</div></div>
+      </aside>
+      <main class="content">
+        <h2>Recenzja</h2>
+        <p>Tu jest Twoja recenzja z Notion — bez zmian. Wariant A1 nie dotyka prawej kolumny, więc długi tekst recenzji czyta się dokładnie jak dziś.</p>
+        <p class="ghost">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+        <p class="ghost">Donec ullamcorper nulla non metus auctor fringilla. Cras mattis consectetur purus sit amet fermentum. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
+      </main>
+    </div>
+  </div></div>
+  <ul class="notes">
+    <li><b>Plusy:</b> kompaktowe, widać pozycję w cyklu od razu (pasek z segmentami w kolorach statusów), recenzja nietknięta.</li>
+    <li><b>Minusy:</b> na mobile karta ląduje nad recenzją (kolumna spada na górę) — trochę wydłuża drogę do tekstu.</li>
+  </ul>
+
+  <!-- A2 -->
+  <div class="variant-label"><b>A2 · Chip + pasek na końcu</b><span>mały chip pod autorem, a pełny pasek okładek i duże strzałki pod recenzją — „co czytać dalej”</span></div>
+  <div class="frame"><div class="frame-inner">
+    <div class="hdr"><span class="logo"><i>R</i>Radek czyta książki</span><span class="sep"></span>← Wszystkie książki</div>
+    <div class="grid">
+      <aside class="rail">
+        <img class="cover" src="../public/covers/for-we-are-many-bobiverse-book-2-dennis-e-taylor.jpg" alt="" />
+        <span class="tag">SCIENCE FICTION</span>
+        <h1 class="title">For We Are Many (Bobiverse Book 2)</h1>
+        <div class="author">Dennis E. Taylor</div>
+        <a href="#" class="chip"><b>#2</b> Cykl Bobiverse →</a>
+        <div class="mono">EBOOK · EN</div>
+        <div class="mono">PRZECZYTANA: <span style="color:var(--rr-ink)">05.2026</span></div>
+        <div><span class="stars">★★★★☆</span> <span class="mono">4/5</span></div>
+        <div class="divider"></div>
+        <div class="buy"><div>Buy in English ↗</div></div>
+      </aside>
+      <main class="content">
+        <h2>Recenzja</h2>
+        <p>Tu jest Twoja recenzja z Notion. Po jej przeczytaniu czytelnik trafia na blok cyklu — naturalny moment, żeby kliknąć dalej.</p>
+        <p class="ghost">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+
+        <section class="a2-strip">
+          <div class="a2-head"><h3>Cykl Bobiverse</h3><a href="#">ZOBACZ CAŁY CYKL →</a></div>
+          <div class="a2-row">
+            <a href="#" class="a2-item"><img src="../public/covers/we-are-legion-we-are-bob-dennis-e-taylor.jpg" alt="" /><span class="n">1</span><span class="lbl"><span class="dot read"></span>We Are Legion</span></a>
+            <a href="#" class="a2-item cur"><img src="../public/covers/for-we-are-many-bobiverse-book-2-dennis-e-taylor.jpg" alt="" /><span class="n">2</span><span class="lbl"><span class="dot read"></span><span>For We Are Many<br/><i style="color:var(--acc)">ta książka</i></span></span></a>
+            <a href="#" class="a2-item"><img src="../public/covers/all-these-worlds-dennis-e-taylor.jpg" alt="" /><span class="n">3</span><span class="lbl"><span class="dot read"></span>All These Worlds</span></a>
+            <a href="#" class="a2-item"><img src="../public/covers/heaven-s-river-dennis-e-taylor.jpg" alt="" /><span class="n">4</span><span class="lbl"><span class="dot now"></span>Heaven's River</span></a>
+          </div>
+          <div class="a2-nav">
+            <a href="#"><small>← POPRZEDNI · TOM 1</small><span>We Are Legion (We Are Bob)</span></a>
+            <a href="#" class="next"><small>NASTĘPNY · TOM 3 →</small><span>All These Worlds</span></a>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div></div>
+  <ul class="notes">
+    <li><b>Plusy:</b> pełny kontekst cyklu w jednym miejscu, duże wygodne strzałki (dobre na mobile), chip daje szybki skrót na górze.</li>
+    <li><b>Minusy:</b> więcej miejsca; przy bardzo długich cyklach (10+ tomów) pasek trzeba przewijać w poziomie.</li>
+  </ul>
+
+  <!-- ===================================================== B ===================================================== -->
+  <div class="part">B · PODSTRONA /cykl/bobiverse</div>
+
+  <!-- B1 -->
+  <div class="variant-label"><b>B1 · Oś czytania</b><span>pionowa lista z numerami tomów — czytelna kolejność, dużo metadanych</span></div>
+  <div class="frame"><div class="frame-inner">
+    <div class="hdr"><span class="logo"><i>R</i>Radek czyta książki</span><span class="sep"></span>← Wszystkie książki</div>
+    <div class="b1-hero">
+      <div>
+        <div class="eyebrow">CYKL · SCIENCE FICTION</div>
+        <h1 class="s-title">Bobiverse</h1>
+        <div class="s-author">Dennis E. Taylor</div>
+        <div class="stats"><div><b>4</b>TOMY</div><div><b>3</b>PRZECZYTANE</div><div><b>4.0</b>ŚR. OCENA</div></div>
+      </div>
+      <div>
+        <div class="b1-prog">POSTĘP W CYKLU · 3 / 4</div>
+        <div class="b1-track"><span style="background:var(--read)"></span><span style="background:var(--read)"></span><span style="background:var(--read)"></span><span style="background:var(--now)"></span></div>
+      </div>
+    </div>
+    <div class="b1-list">
+      <a href="#" class="b1-row"><span class="b1-num">1</span><img src="../public/covers/we-are-legion-we-are-bob-dennis-e-taylor.jpg" alt="" />
+        <div><h3>We Are Legion (We Are Bob)</h3><div class="b1-meta"><span class="pill read"><span class="dot read"></span>PRZECZYTANE</span><span class="stars" style="font-size:14px">★★★★☆</span></div></div>
+        <span class="b1-go">RECENZJA →</span></a>
+      <a href="#" class="b1-row"><span class="b1-num">2</span><img src="../public/covers/for-we-are-many-bobiverse-book-2-dennis-e-taylor.jpg" alt="" />
+        <div><h3>For We Are Many</h3><div class="b1-meta"><span class="pill read"><span class="dot read"></span>PRZECZYTANE</span><span class="stars" style="font-size:14px">★★★★☆</span><span class="mono">05.2026</span></div></div>
+        <span class="b1-go">RECENZJA →</span></a>
+      <a href="#" class="b1-row"><span class="b1-num">3</span><img src="../public/covers/all-these-worlds-dennis-e-taylor.jpg" alt="" />
+        <div><h3>All These Worlds</h3><div class="b1-meta"><span class="pill read"><span class="dot read"></span>PRZECZYTANE</span><span class="stars" style="font-size:14px">★★★★☆</span><span class="mono">09.2026</span></div></div>
+        <span class="b1-go">RECENZJA →</span></a>
+      <a href="#" class="b1-row"><span class="b1-num" style="border-color:var(--now)">4</span><img src="../public/covers/heaven-s-river-dennis-e-taylor.jpg" alt="" />
+        <div><h3>Heaven's River</h3><div class="b1-meta"><span class="pill now"><span class="dot now"></span>CZYTAM</span><span class="b1-progress"><i></i></span><span class="mono">38%</span></div></div>
+        <span class="b1-go">SZCZEGÓŁY →</span></a>
+    </div>
+  </div></div>
+  <ul class="notes">
+    <li><b>Plusy:</b> kolejność jest oczywista (oś + numery), mieści dużo informacji, dobrze skaluje się do długich cykli i na mobile (to po prostu lista).</li>
+    <li><b>Minusy:</b> mniej „efektowna”, okładki są małe.</li>
+  </ul>
+
+  <!-- B2 -->
+  <div class="variant-label"><b>B2 · Półka okładek</b><span>duże okładki w siatce z wielkimi numerami tomów — bardziej wizualne, jak strona główna</span></div>
+  <div class="frame"><div class="frame-inner">
+    <div class="hdr"><span class="logo"><i>R</i>Radek czyta książki</span><span class="sep"></span>← Wszystkie książki</div>
+    <div class="b2-hero">
+      <div>
+        <div class="eyebrow">CYKL · 4 TOMY</div>
+        <h1 class="s-title">Bobiverse</h1>
+        <div class="s-author">Dennis E. Taylor · Science Fiction</div>
+        <div class="stats"><div><b>3 / 4</b>PRZECZYTANE</div><div><b>★ 4.0</b>ŚR. OCENA</div><div><b>Tom 4</b>CZYTAM TERAZ</div></div>
+      </div>
+      <div class="fan">
+        <img src="../public/covers/we-are-legion-we-are-bob-dennis-e-taylor.jpg" style="left:0;transform:rotate(-9deg)" alt="" />
+        <img src="../public/covers/for-we-are-many-bobiverse-book-2-dennis-e-taylor.jpg" style="left:85px;transform:rotate(-3deg)" alt="" />
+        <img src="../public/covers/all-these-worlds-dennis-e-taylor.jpg" style="left:170px;transform:rotate(3deg)" alt="" />
+        <img src="../public/covers/heaven-s-river-dennis-e-taylor.jpg" style="left:255px;transform:rotate(9deg)" alt="" />
+      </div>
+    </div>
+    <div class="b2-grid">
+      <a href="#" class="b2-card"><div class="b2-cov"><img src="../public/covers/we-are-legion-we-are-bob-dennis-e-taylor.jpg" alt="" /><span class="bar" style="background:var(--read)"></span><span class="b2-big">1</span></div>
+        <h3>We Are Legion (We Are Bob)</h3><div class="b2-line"><span class="pill read">PRZECZYTANE</span><span class="stars" style="font-size:13px">★★★★☆</span></div></a>
+      <a href="#" class="b2-card"><div class="b2-cov"><img src="../public/covers/for-we-are-many-bobiverse-book-2-dennis-e-taylor.jpg" alt="" /><span class="bar" style="background:var(--read)"></span><span class="b2-big">2</span></div>
+        <h3>For We Are Many</h3><div class="b2-line"><span class="pill read">PRZECZYTANE</span><span class="stars" style="font-size:13px">★★★★☆</span></div></a>
+      <a href="#" class="b2-card"><div class="b2-cov"><img src="../public/covers/all-these-worlds-dennis-e-taylor.jpg" alt="" /><span class="bar" style="background:var(--read)"></span><span class="b2-big">3</span></div>
+        <h3>All These Worlds</h3><div class="b2-line"><span class="pill read">PRZECZYTANE</span><span class="stars" style="font-size:13px">★★★★☆</span></div></a>
+      <a href="#" class="b2-card"><div class="b2-cov"><img src="../public/covers/heaven-s-river-dennis-e-taylor.jpg" alt="" /><span class="bar" style="background:var(--now)"></span><span class="b2-big">4</span></div>
+        <h3>Heaven's River</h3><div class="b2-line"><span class="pill now">CZYTAM · 38%</span></div></a>
+    </div>
+  </div></div>
+  <ul class="notes">
+    <li><b>Plusy:</b> efektowne, spójne ze stroną główną (okładki grają pierwsze skrzypce), wachlarz w nagłówku daje „tożsamość” cyklu.</li>
+    <li><b>Minusy:</b> mniej miejsca na metadane; przy 2 tomach siatka wygląda pustawo.</li>
+  </ul>
+</div>
+</body>
+</html>

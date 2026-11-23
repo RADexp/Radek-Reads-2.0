@@ -1,0 +1,224 @@
+---
+// Blok cyklu pod recenzją — wariant A2 z designs/Radek Reads - Cykle.html:
+// pasek okładek wszystkich tomów (bieżący podświetlony) + przyciski poprzedni/następny.
+import BookCover from './BookCover.astro';
+import T from './T.astro';
+import { volumeLabel, type SeriesPosition } from '../lib/series';
+
+interface Props {
+  position: SeriesPosition;
+}
+const { position } = Astro.props;
+const { series, index, prev, next } = position;
+const prevIdx = index - 1;
+const nextIdx = index + 1;
+---
+
+<section class="rs-strip" aria-labelledby="rs-strip-title">
+  <div class="rs-strip-head">
+    <h2 id="rs-strip-title" class="rs-strip-title"><span data-i18n="pl">Cykl {series.name}</span><span data-i18n="en">{series.name} series</span></h2>
+    <a href={`/cykl/${series.slug}`} class="rs-strip-all"><T k="seriesSeeAll" /> →</a>
+  </div>
+
+  <ol class="rs-strip-row">
+    {series.books.map((b, i) => (
+      <li>
+        <a
+          href={`/recenzje/${b.id}`}
+          class:list={['rs-strip-item', { 'is-current': i === index }]}
+          aria-current={i === index ? 'page' : undefined}
+        >
+          <span class="rs-strip-cover">
+            <BookCover title={b.title} author={b.author} genre={b.genre} cover={b.cover} w={110} h={165} radius={9} fluid />
+            <span class="rs-strip-num">{volumeLabel(b, i)}</span>
+          </span>
+          <span class="rs-strip-label">
+            <span class={`rs-strip-dot is-${b.shelf}`}></span>
+            <span>
+              {b.title}
+              {i === index && <em class="rs-strip-this"><T k="seriesThisBook" /></em>}
+            </span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ol>
+
+  {(prev || next) && (
+    <nav class="rs-strip-nav">
+      {prev ? (
+        <a href={`/recenzje/${prev.id}`} class="rs-strip-btn" rel="prev">
+          <small>← <T k="seriesPrev" /> · <T k="volume" /> {volumeLabel(prev, prevIdx)}</small>
+          <span>{prev.title}</span>
+        </a>
+      ) : <span></span>}
+      {next && (
+        <a href={`/recenzje/${next.id}`} class="rs-strip-btn is-next" rel="next">
+          <small><T k="seriesNext" /> · <T k="volume" /> {volumeLabel(next, nextIdx)} →</small>
+          <span>{next.title}</span>
+        </a>
+      )}
+    </nav>
+  )}
+</section>
+
+<style>
+  .rs-strip {
+    margin-top: 40px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rr-line);
+  }
+  .rs-strip-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .rs-strip-title {
+    margin: 0;
+    font-family: var(--rr-sans);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--rr-ink);
+  }
+  .rs-strip-all,
+  .rs-strip-btn small {
+    font-family: var(--rr-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .rs-strip-all {
+    color: oklch(0.82 0.16 var(--hue));
+    text-decoration: none;
+  }
+  .rs-strip-all:hover {
+    text-decoration: underline;
+  }
+
+  /* Pasek okładek: stała szerokość kolumny, przy długich cyklach przewijany w poziomie. */
+  .rs-strip-row {
+    list-style: none;
+    margin: 0;
+    padding: 4px 4px 8px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(104px, 1fr);
+    gap: 14px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .rs-strip-row > li {
+    min-width: 104px;
+    max-width: 170px;
+  }
+  .rs-strip-item {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    text-decoration: none;
+    color: var(--rr-muted);
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+  .rs-strip-item:hover,
+  .rs-strip-item:focus-visible,
+  .rs-strip-item.is-current {
+    opacity: 1;
+    color: var(--rr-ink);
+  }
+  .rs-strip-cover {
+    position: relative;
+    display: block;
+    border-radius: 9px;
+  }
+  .rs-strip-item.is-current .rs-strip-cover {
+    outline: 2px solid oklch(0.82 0.16 var(--hue));
+    outline-offset: 3px;
+  }
+  .rs-strip-num {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: rgb(11 8 32 / 0.85);
+    font-family: var(--rr-mono);
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--rr-ink);
+  }
+  .rs-strip-label {
+    display: flex;
+    gap: 7px;
+    align-items: flex-start;
+    font-family: var(--rr-sans);
+    font-size: 12.5px;
+    line-height: 1.3;
+  }
+  .rs-strip-this {
+    display: block;
+    font-style: italic;
+    color: oklch(0.82 0.16 var(--hue));
+  }
+  .rs-strip-dot {
+    flex-shrink: 0;
+    width: 7px;
+    height: 7px;
+    margin-top: 5px;
+    border-radius: 50%;
+  }
+  .rs-strip-dot.is-finished { background: var(--rr-marker-read); }
+  .rs-strip-dot.is-reading { background: var(--rr-marker-now); box-shadow: 0 0 8px var(--rr-marker-now); }
+  .rs-strip-dot.is-next { background: var(--rr-marker-next); }
+
+  .rs-strip-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .rs-strip-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--rr-line-2);
+    background: rgb(255 255 255 / 0.03);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .rs-strip-btn:hover,
+  .rs-strip-btn:focus-visible {
+    border-color: oklch(0.82 0.16 var(--hue));
+  }
+  .rs-strip-btn small {
+    color: var(--rr-muted);
+  }
+  .rs-strip-btn span {
+    font-family: var(--rr-sans);
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.25;
+    color: var(--rr-ink);
+  }
+  .rs-strip-btn.is-next {
+    grid-column: 2;
+    text-align: right;
+  }
+  @media (max-width: 520px) {
+    .rs-strip-nav {
+      grid-template-columns: 1fr;
+    }
+    .rs-strip-nav > span:empty {
+      display: none;
+    }
+    .rs-strip-btn.is-next {
+      grid-column: auto;
+    }
+  }
+</style>
